@@ -1,0 +1,2462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="meta_title">PROTOCOL ARCHIVE // DEAD CITY // DOSSIER DATABASE</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Inter:wght@300;400;600;800&family=Orbitron:wght@400;700;900&display=swap');
+
+        :root {
+            --bg: #050508;
+            --bg-card: #0c0c14;
+            --bg-glass: rgba(12, 12, 20, 0.85);
+            --accent-violet: #a855f7;
+            --accent-cyan: #06b6d4;
+            --accent-red: #ef4444;
+            --accent-amber: #f59e0b;
+            --text: #e2e8f0;
+            --text-dim: #64748b;
+            --border: rgba(168, 85, 247, 0.25);
+            --glow-violet: 0 0 20px rgba(168, 85, 247, 0.4);
+            --glow-cyan: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0,0,0,0.15) 0px,
+                    rgba(0,0,0,0.15) 1px,
+                    transparent 1px,
+                    transparent 2px);
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.6;
+        }
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.6) 100%);
+            pointer-events: none;
+            z-index: 9998;
+        }
+
+        #boot-screen {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .boot-text {
+            color: var(--accent-cyan);
+            font-size: 14px;
+            line-height: 1.8;
+            max-width: 600px;
+            width: 90%;
+            text-shadow: 0 0 10px rgba(6,182,212,0.5);
+        }
+        .boot-line {
+            opacity: 0;
+            animation: bootFade 0.1s forwards;
+        }
+        @keyframes bootFade { to { opacity:1; } }
+        .boot-progress {
+            width: 300px;
+            height: 4px;
+            background: #1a1a2e;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .boot-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan));
+            box-shadow: 0 0 10px var(--accent-violet);
+            animation: bootLoad 2.5s ease-out forwards;
+        }
+        @keyframes bootLoad { to { width:100%; } }
+
+        .site-header {
+            position: sticky;
+            top: 0;
+            background: rgba(5,5,8,0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .logo {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 900;
+            font-size: 18px;
+            background: linear-gradient(135deg, var(--accent-violet), var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+        .logo span { color: var(--accent-red); -webkit-text-fill-color: var(--accent-red); }
+        .nav-links { display: flex; gap:8px; flex-wrap:wrap; }
+        .nav-btn {
+            background: transparent;
+            border: 1px solid rgba(168,85,247,0.3);
+            color: var(--text-dim);
+            padding: 8px 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-btn:hover, .nav-btn.active {
+            border-color: var(--accent-violet);
+            color: var(--accent-violet);
+            box-shadow: var(--glow-violet);
+            text-shadow: 0 0 8px rgba(168,85,247,0.6);
+        }
+        .lang-dropdown { position: relative; }
+        .lang-trigger {
+            background: rgba(168,85,247,0.1);
+            border: 1px solid rgba(168,85,247,0.3);
+            color: var(--accent-violet);
+            padding: 8px 14px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 1px;
+        }
+        .lang-trigger:hover {
+            border-color: var(--accent-violet);
+            box-shadow: var(--glow-violet);
+            background: rgba(168,85,247,0.15);
+        }
+        .lang-trigger svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            filter: drop-shadow(0 0 4px rgba(168,85,247,0.5));
+        }
+        .lang-trigger .lang-code {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            transition: color 0.3s;
+        }
+        .lang-trigger:hover .lang-code { color: var(--accent-violet); }
+        .lang-menu {
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-violet) transparent;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            background: rgba(8,8,14,0.98);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            min-width: 140px;
+            display: none;
+            flex-direction: column;
+            /* вот эти три строки решают задачу */
+            max-height: 380px;        /* ~10 пунктов + намёк на скролл */
+            overflow-y: auto;         /* вертикальная прокрутка */
+            overscroll-behavior-y: contain; /* скролл не уходит на body */
+            box-shadow: 0 8px 32px rgba(0,0,0,0.8), var(--glow-violet);
+            z-index: 200;
+            animation: langMenuIn 0.2s ease-out;
+        }
+        .lang-menu::-webkit-scrollbar { width: 4px; }
+        .lang-menu::-webkit-scrollbar-track { background: transparent; }
+        .lang-menu::-webkit-scrollbar-thumb {
+            background: var(--accent-violet);
+            border-radius: 2px;
+        }
+        .lang-menu.open { display: flex; }
+        @keyframes langMenuIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lang-menu::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-violet), var(--accent-cyan), transparent);
+        }
+        .lang-item {
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(168,85,247,0.08);
+            color: var(--text-dim);
+            padding: 10px 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .lang-item:last-child { border-bottom: none; }
+        .lang-item:hover {
+            background: rgba(168,85,247,0.1);
+            color: var(--accent-violet);
+            text-shadow: 0 0 8px rgba(168,85,247,0.4);
+        }
+        .lang-item.active {
+            background: rgba(168,85,247,0.15);
+            color: var(--accent-violet);
+            font-weight: 700;
+        }
+        .lang-item.active::after {
+            content: "◀";
+            font-size: 9px;
+            color: var(--accent-violet);
+            text-shadow: 0 0 6px rgba(168,85,247,0.6);
+        }
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 30px 20px;
+            position: relative;
+            z-index: 1;
+        }
+        .section { display: none; animation: sectionIn 0.6s ease-out; }
+        .section.active {
+            display: block;
+        }
+        @keyframes sectionIn {
+            from { opacity:0; transform:translateY(30px); }
+            to { opacity:1; transform:translateY(0); }
+        }
+        .card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 24px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+        .card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-violet), var(--accent-cyan), transparent);
+            opacity: 0.6;
+        }
+        .card-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-cyan);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-header::before {
+            content: "▶";
+            color: var(--accent-violet);
+            font-size: 10px;
+        }
+        .dossier-header {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        @media(min-width:768px) { .dossier-header { grid-template-columns:200px 1fr; } }
+        .dossier-photo {
+            width: 100%;
+            aspect-ratio: 3/4;
+            background: linear-gradient(135deg, #1a1a2e, #0f0f1a);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .dossier-photo::after {
+            content: "[NO IMAGE DATA]";
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+        }
+        .dossier-photo.veyra::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 30% 40%, rgba(168,85,247,0.15) 0%, transparent 50%),
+                radial-gradient(circle at 70% 60%, rgba(6,182,212,0.1) 0%, transparent 50%);
+        }
+        .dossier-photo.mika::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at 50% 30%, rgba(239,68,68,0.1) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(245,158,11,0.08) 0%, transparent 50%);
+        }
+        .dossier-meta { display: flex; flex-direction: column; gap:12px; }
+        .dossier-id {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-red);
+            border: 1px solid rgba(239,68,68,0.3);
+            padding: 4px 8px;
+            display: inline-block;
+            width: fit-content;
+            text-transform: uppercase;
+        }
+        .dossier-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            background: linear-gradient(135deg, #fff, var(--accent-violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .dossier-sub {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+        .data-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        @media(min-width:640px) { .data-grid { grid-template-columns:1fr 1fr; } }
+        .data-row {
+            display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(168,85,247,0.1);
+        }
+        .data-label {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+        }
+        .data-value {
+            font-size: 14px;
+            color: var(--text);
+            font-weight: 400;
+            line-height: 1.5;
+        }
+        .status-block {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(168,85,247,0.15);
+            padding: 16px;
+            margin-top: 16px;
+            font-family: 'Share Tech Mono', monospace;
+        }
+        .status-line {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+        .status-label {
+            width: 120px;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+        .status-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #1a1a2e;
+            position: relative;
+            overflow: hidden;
+        }
+        .status-bar-fill {
+            height: 100%;
+            position: relative;
+            transition: width 1s ease-out;
+        }
+        .status-bar-fill::after {
+            content: "";
+            position: absolute;
+            top:0; left:0; right:0; bottom:0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: barShine 2s infinite;
+        }
+        @keyframes barShine {
+            0% { transform:translateX(-100%); }
+            100% { transform:translateX(100%); }
+        }
+        .zone-red { background: linear-gradient(90deg, #7f1d1d, var(--accent-red)); box-shadow: 0 0 8px rgba(239,68,68,0.4); }
+        .zone-amber { background: linear-gradient(90deg, #78350f, var(--accent-amber)); box-shadow: 0 0 8px rgba(245,158,11,0.3); }
+        .zone-green { background: linear-gradient(90deg, #14532d, #22c55e); box-shadow: 0 0 8px rgba(34,197,94,0.3); }
+        .zone-blue { background: linear-gradient(90deg, #1e3a8a, #3b82f6); box-shadow: 0 0 8px rgba(59,130,246,0.3); }
+        .zone-violet { background: linear-gradient(90deg, #4c1d95, var(--accent-violet)); box-shadow: 0 0 8px rgba(168,85,247,0.4); }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-dim);
+            padding: 12px 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-btn:hover { color: var(--accent-violet); }
+        .tab-btn.active {
+            color: var(--accent-violet);
+            border-bottom-color: var(--accent-violet);
+            text-shadow: 0 0 8px rgba(168,85,247,0.5);
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+        h1.glitch {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            position: relative;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+        h1.glitch::before,
+        h1.glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+        }
+        h1.glitch::before {
+            color: var(--accent-violet);
+            animation: glitch1 2s infinite;
+            clip-path: polygon(0 0, 100% 0, 100% 35%, 0 35%);
+        }
+        h1.glitch::after {
+            color: var(--accent-cyan);
+            animation: glitch2 2s infinite;
+            clip-path: polygon(0 65%, 100% 65%, 100% 100%, 0 100%);
+        }
+        @keyframes glitch1 {
+            0%,90%,100% { transform:translate(0); }
+            92% { transform:translate(-3px,1px); }
+            94% { transform:translate(3px,-1px); }
+            96% { transform:translate(-2px,0); }
+        }
+        @keyframes glitch2 {
+            0%,90%,100% { transform:translate(0); }
+            91% { transform:translate(2px,-1px); }
+            93% { transform:translate(-2px,1px); }
+            95% { transform:translate(3px,0); }
+        }
+        p.lead {
+            font-size: 15px;
+            line-height: 1.8;
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            border-left: 2px solid var(--accent-violet);
+            padding-left: 16px;
+        }
+        .lore-list { list-style:none; padding:0; }
+        .lore-list li {
+            padding: 10px 0 10px 24px;
+            position: relative;
+            border-bottom: 1px solid rgba(168,85,247,0.08);
+            font-size: 14px;
+            line-height: 1.7;
+        }
+        .lore-list li::before {
+            content: "›";
+            position: absolute;
+            left: 0;
+            color: var(--accent-violet);
+            font-weight: 700;
+        }
+        .tag {
+            display: inline-block;
+            padding: 3px 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid;
+            margin: 2px;
+        }
+        .tag-danger { color: var(--accent-red); border-color: rgba(239,68,68,0.4); background: rgba(239,68,68,0.08); }
+        .tag-warning { color: var(--accent-amber); border-color: rgba(245,158,11,0.4); background: rgba(245,158,11,0.08); }
+        .tag-info { color: var(--accent-cyan); border-color: rgba(6,182,212,0.4); background: rgba(6,182,212,0.08); }
+        .tag-violet { color: var(--accent-violet); border-color: rgba(168,85,247,0.4); background: rgba(168,85,247,0.08); }
+
+        .bestiary-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media(min-width:768px) { .bestiary-grid { grid-template-columns:1fr 1fr; } }
+        @media(min-width:1024px) { .bestiary-grid { grid-template-columns:repeat(3,1fr); } }
+        .beast-card {
+            background: var(--bg-glass);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .beast-card:hover {
+            border-color: var(--accent-violet);
+            box-shadow: var(--glow-violet);
+            transform: translateY(-4px);
+        }
+        .beast-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .beast-card .meta {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            color: var(--accent-red);
+            margin-bottom: 12px;
+            display: block;
+        }
+        .loc-grid {
+            max-width: 880px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+        @media(min-width:768px) { .loc-grid { grid-template-columns:1fr 1fr; } }
+        .loc-card {
+            background: rgba(10,10,15,0.6);
+            border-left: 3px solid var(--accent-cyan);
+            padding: 14px 18px;
+            position: relative;
+        }
+        .loc-card h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            color: var(--accent-cyan);
+        }
+        .loc-card .danger-level {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 10px;
+            padding: 2px 8px;
+            border: 1px solid;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline::before {
+            content: "";
+            position: absolute;
+            left: 6px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--accent-violet), var(--accent-cyan), transparent);
+        }
+        .timeline-item {
+            position: relative;
+            margin-bottom: 24px;
+            padding-left: 20px;
+        }
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -28px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent-violet);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-violet);
+        }
+        .timeline-date {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+        }
+        .timeline-item h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+        .collapsible {
+            background: rgba(168,85,247,0.05);
+            border: 1px solid rgba(168,85,247,0.15);
+            margin-bottom: 12px;
+            cursor: pointer;
+            padding: 14px 18px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+        .collapsible:hover {
+            background: rgba(168,85,247,0.1);
+            border-color: var(--accent-violet);
+        }
+        .collapsible::after {
+            content: "+";
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--accent-violet);
+            font-size: 16px;
+        }
+        .collapsible.active::after { content: "−"; }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(168,85,247,0.1);
+            border-top: none;
+        }
+        .collapsible-content-inner {
+            padding: 18px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text-dim);
+        }
+        .collapsible-content-inner strong { color: var(--accent-cyan); font-weight:600; }
+
+        .site-footer {
+            text-align: center;
+            padding: 40px 20px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 11px;
+            color: var(--text-dim);
+            border-top: 1px solid rgba(168,85,247,0.1);
+            margin-top: 40px;
+        }
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--accent-violet);
+            font-size: 24px;
+            cursor: pointer;
+        }
+        @media(max-width:768px) {
+            .nav-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                gap: 4px;
+                margin-top: 10px;
+            }
+            .lang-menu { right: auto; left: 0; }
+            .nav-links.open { display: flex; }
+            .mobile-menu-btn { display: block; }
+            h1.glitch { font-size:22px; }
+            .dossier-name { font-size:20px; }
+        }
+        .divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--accent-violet), transparent);
+            margin: 24px 0;
+            opacity: 0.4;
+        }
+        .stamp {
+            display: inline-block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            padding: 4px 12px;
+            border: 2px solid var(--accent-red);
+            color: var(--accent-red);
+            transform: rotate(-3deg);
+            margin: 8px 0;
+            opacity: 0.9;
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        @media(min-width:768px) { .two-col { grid-template-columns:1fr 1fr; } }
+
+        #particle-canvas {
+            position: fixed;
+            top:0; left:0;
+            width:100%;
+            height:100%;
+            pointer-events: none;
+            z-index:0;
+            opacity:0.3;
+        }
+        ::-webkit-scrollbar { width:6px; }
+        ::-webkit-scrollbar-track { background:var(--bg); }
+        ::-webkit-scrollbar-thumb { background:var(--accent-violet); border-radius:3px; }
+
+        .beast-card img, .loc-card img, .card>img, .card .img-grid img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+        }
+        .loc-card img {
+            margin: -16px -20px 12px -20px;
+            width: calc(100% + 40px);
+            border-radius: 0;
+            border: none;
+            border-bottom: 1px solid var(--border);
+        }
+        .img-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+            align-items: stretch;
+        }
+        .img-grid img {
+            width: 100%;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+    
+        .dossier-photo:has(img)::after { display:none; }
+        .dossier-photo img { position:relative; z-index:1; }
+        .dossier-photo.veyra::before, .dossier-photo.mika::before { z-index:2; pointer-events:none; }
+        .img-grid img { object-fit: cover; aspect-ratio: 3/4; height: auto; }
+        /* ===== AUDIO PLAYER ===== */
+.audio-player-wrapper {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+    z-index: 9997;
+}
+
+.audio-toggle {
+    width: 36px;
+    height: 44px;
+    background: rgba(8, 8, 14, 0.95);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 4px;
+    color: var(--accent-violet);
+    font-size: 14px;
+    font-family: 'Share Tech Mono', monospace;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+    backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8);
+    flex-shrink: 0;
+}
+
+.audio-toggle:hover {
+    border-color: var(--accent-violet);
+    background: rgba(168, 85, 247, 0.15);
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.8);
+}
+
+.audio-toggle-icon {
+    display: inline-block;
+    transition: transform 0.3s;
+}
+
+.audio-player-wrapper.collapsed .audio-toggle-icon {
+    transform: rotate(180deg);
+}
+
+.audio-player-panel {
+    width: 300px;
+    background: rgba(8, 8, 14, 0.95);
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    border-radius: 4px;
+    backdrop-filter: blur(12px);
+    padding: 14px 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.8), 0 0 20px rgba(168, 85, 247, 0.15);
+    transition: transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.audio-player-wrapper.collapsed .audio-player-panel {
+    transform: translateX(calc(100% + 30px));
+}
+
+.audio-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.audio-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px;
+    color: var(--accent-cyan);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    opacity: 0.8;
+}
+
+/* Visualizer bars */
+.audio-visualizer {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 16px;
+}
+
+.audio-visualizer span {
+    width: 3px;
+    background: linear-gradient(180deg, var(--accent-violet), var(--accent-cyan));
+    border-radius: 1px;
+    opacity: 0.3;
+    transition: height 0.15s ease;
+    height: 3px;
+}
+
+.audio-visualizer span:nth-child(1) { height: 4px; }
+.audio-visualizer span:nth-child(2) { height: 8px; }
+.audio-visualizer span:nth-child(3) { height: 5px; }
+.audio-visualizer span:nth-child(4) { height: 10px; }
+.audio-visualizer span:nth-child(5) { height: 6px; }
+.audio-visualizer span:nth-child(6) { height: 12px; }
+.audio-visualizer span:nth-child(7) { height: 5px; }
+.audio-visualizer span:nth-child(8) { height: 9px; }
+.audio-visualizer span:nth-child(9) { height: 4px; }
+.audio-visualizer span:nth-child(10) { height: 7px; }
+
+.audio-player-wrapper.playing .audio-visualizer span {
+    animation: vizPulse 0.5s infinite ease-in-out alternate;
+    opacity: 0.9;
+}
+
+.audio-player-wrapper.playing .audio-visualizer span:nth-child(odd) { animation-duration: 0.4s; }
+.audio-player-wrapper.playing .audio-visualizer span:nth-child(3n) { animation-duration: 0.6s; }
+.audio-player-wrapper.playing .audio-visualizer span:nth-child(5) { animation-duration: 0.35s; }
+
+@keyframes vizPulse {
+    0% { height: 3px; }
+    100% { height: 14px; }
+}
+
+.audio-track-name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 10px;
+    text-shadow: 0 0 6px rgba(168, 85, 247, 0.3);
+}
+
+.audio-progress-wrap {
+    margin-bottom: 10px;
+}
+
+.audio-progress-bg {
+    width: 100%;
+    height: 5px;
+    background: #1a1a2e;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 1px;
+}
+
+.audio-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent-violet), var(--accent-cyan));
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    transition: width 0.1s linear;
+    position: relative;
+}
+
+.audio-progress-fill::after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    animation: barShine 2s infinite;
+}
+
+.audio-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    text-align: right;
+    letter-spacing: 1px;
+}
+
+.audio-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.audio-btn {
+    background: transparent;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    color: var(--text-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 2px;
+}
+
+.audio-btn:hover {
+    border-color: var(--accent-violet);
+    color: var(--accent-violet);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.25);
+    text-shadow: 0 0 6px rgba(168, 85, 247, 0.5);
+}
+
+.audio-btn.audio-play {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+    font-size: 14px;
+    padding: 6px 16px;
+}
+
+.audio-btn.audio-play:hover {
+    box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.5);
+}
+
+.audio-volume-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.audio-vol-icon {
+    font-size: 11px;
+    color: var(--accent-violet);
+    opacity: 0.7;
+}
+
+.audio-volume {
+    -webkit-appearance: none;
+    appearance: none;
+    flex: 1;
+    height: 3px;
+    background: #1a1a2e;
+    outline: none;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+.audio-volume::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 10px;
+    height: 10px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(6, 182, 212, 0.6);
+    cursor: pointer;
+}
+
+.audio-volume::-moz-range-thumb {
+    width: 10px;
+    height: 10px;
+    background: var(--accent-cyan);
+    border-radius: 50%;
+    box-shadow: 0 0 6px rgba(6, 182, 212, 0.6);
+    cursor: pointer;
+    border: none;
+}
+
+@media (max-width: 640px) {
+    .audio-player-panel {
+        width: calc(100vw - 80px);
+        max-width: 300px;
+    }
+    .audio-player-wrapper {
+        bottom: 16px;
+        right: 16px;
+    }
+}
+
+        /* ===== CHAT LINK BUTTONS ===== */
+        .chat-link-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: rgba(168, 85, 247, 0.08);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 4px;
+            color: var(--accent-violet);
+            font-family: 'Orbitron', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.35s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.1);
+        }
+        .chat-link-btn::before {
+            content: "";
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.25), transparent);
+            transition: left 0.6s ease;
+        }
+        .chat-link-btn:hover::before {
+            left: 100%;
+        }
+        .chat-link-btn:hover {
+            background: rgba(168, 85, 247, 0.18);
+            border-color: var(--accent-violet);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.4), 0 0 8px rgba(168, 85, 247, 0.2);
+            color: #fff;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.9);
+            transform: translateY(-2px);
+        }
+        .chat-link-btn .btn-icon {
+            font-size: 14px;
+            transition: transform 0.3s ease;
+        }
+        .chat-link-btn:hover .btn-icon {
+            transform: translateX(4px);
+        }
+        .chat-link-btn .btn-pulse {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent-violet);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--accent-violet);
+            animation: btnPulse 2s infinite;
+        }
+        @keyframes btnPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.3); }
+        }
+        /* Mika variant — amber accent */
+        .chat-link-btn.mika-btn {
+            color: var(--accent-amber);
+            border-color: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.08);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+        }
+        .chat-link-btn.mika-btn::before {
+            background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.25), transparent);
+        }
+        .chat-link-btn.mika-btn:hover {
+            background: rgba(245, 158, 11, 0.18);
+            border-color: var(--accent-amber);
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.4), 0 0 8px rgba(245, 158, 11, 0.2);
+            color: #fff;
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.9);
+        }
+        .chat-link-btn.mika-btn .btn-pulse {
+            background: var(--accent-amber);
+            box-shadow: 0 0 8px var(--accent-amber);
+        }
+    </style>
+    <base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+<base target="_blank">
+</head>
+<body>
+
+<canvas id="particle-canvas"></canvas>
+
+<!-- BOOT SCREEN – можно оставить статическим или тоже перевести, но для простоты оставляем английский -->
+<div id="boot-screen">
+    <div class="boot-text" id="boot-text"></div>
+    <div class="boot-progress"><div class="boot-progress-bar"></div></div>
+</div>
+
+<div id="app" style="display:none">
+    <header class="site-header">
+        <div class="logo">Protocol<span>_</span>Archive</div>
+        <button class="mobile-menu-btn" onclick="toggleMenu()">☰</button>
+    <nav class="nav-links" id="nav-links">
+        <button class="nav-btn active" onclick="showSection('world', this)"><span data-i18n="nav_world">World</span></button>
+        <button class="nav-btn" onclick="showSection('veyra', this)"><span data-i18n="nav_veyra">Veyra</span></button>
+        <button class="nav-btn" onclick="showSection('mika', this)"><span data-i18n="nav_mika">Mika</span></button>
+        <button class="nav-btn" onclick="showSection('survival', this)"><span data-i18n="nav_survival">Survival</span></button>
+        <button class="nav-btn" onclick="showSection('bestiary', this)"><span data-i18n="nav_bestiary">Bestiary</span></button>
+        <button class="nav-btn" onclick="showSection('locations', this)"><span data-i18n="nav_locations">Locations</span></button>
+    </nav>
+    <div class="lang-dropdown" id="lang-dropdown">
+        <button class="lang-trigger" onclick="toggleLangMenu(event)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            <span class="lang-code" id="current-lang-code">EN</span>
+        </button>
+        <div class="lang-menu" id="lang-menu">
+            <button class="lang-item active" data-lang="en" onclick="loadLanguage('en', this)">English</button>
+            <button class="lang-item" data-lang="ru" onclick="loadLanguage('ru', this)">Русский</button>
+            <button class="lang-item" data-lang="pt" onclick="loadLanguage('pt', this)">Português</button>
+            <button class="lang-item" data-lang="pt-BR" onclick="loadLanguage('pt-BR', this)">Portuguese (Brazil)</button>
+            <button class="lang-item" data-lang="zh" onclick="loadLanguage('zh', this)">中文</button>
+            <button class="lang-item" data-lang="TW" onclick="loadLanguage('zh-TW', this)">繁體中文</button>
+            <button class="lang-item" data-lang="es" onclick="loadLanguage('es', this)">Español</button>
+            <button class="lang-item" data-lang="dan" onclick="loadLanguage('dan', this)">Dansk</button>
+            <button class="lang-item" data-lang="de" onclick="loadLanguage('de', this)">Deutsch</button>
+            <button class="lang-item" data-lang="fi" onclick="loadLanguage('fi', this)">Suomi</button>
+            <button class="lang-item" data-lang="id" onclick="loadLanguage('id', this)">Bahasa Indonesia</button>
+            <button class="lang-item" data-lang="hu" onclick="loadLanguage('hu', this)">Magyar</button>
+            <button class="lang-item" data-lang="fr" onclick="loadLanguage('fr', this)">French</button>
+            <button class="lang-item" data-lang="it" onclick="loadLanguage('it', this)">Italian</button>
+            <button class="lang-item" data-lang="ja" onclick="loadLanguage('ja', this)">Japanese</button>
+            <button class="lang-item" data-lang="ko" onclick="loadLanguage('ko', this)">Korean</button>
+            <button class="lang-item" data-lang="ms" onclick="loadLanguage('ms', this)">Malay</button>
+            <button class="lang-item" data-lang="nl" onclick="loadLanguage('nl', this)">Dutch</button>
+            <button class="lang-item" data-lang="pl" onclick="loadLanguage('pl', this)">Polish</button>
+            <button class="lang-item" data-lang="ro" onclick="loadLanguage('ro', this)">Romanian</button>
+            <button class="lang-item" data-lang="sv" onclick="loadLanguage('sv', this)">Svenska</button>
+            <button class="lang-item" data-lang="tr" onclick="loadLanguage('tr', this)">Türkçe</button>
+        </div>
+    </div>
+    </header>
+
+    <main>
+
+        <!-- ============ WORLD SECTION ============ -->
+        <div id="world" class="section active">
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 class="glitch" data-i18n-glitch="heading_deadcity" data-text="DEAD CITY">DEAD CITY</h1>
+                <p class="lead" style="border:none; padding:0; max-width:700px; margin:0 auto;" data-i18n="lead_deadcity">Modern unnamed megapolis. August 2026. One year after the Collapse. The city is recognizable but broken — metro tunnels, industrial zones, collapsed suburbs. The dead city is silent except for wind, distant gunfire, and occasional screams.</p>
+                <img src="https://i.postimg.cc/YSDrwwJr/Ruined-Megapolis-Aerial-Cover-Shot.png" alt="Ruined Metropolis" style="width:100%;max-width:700px;margin:20px auto;display:block;border-radius:4px;border:1px solid var(--border);" data-i18n-alt="world_ruined_metro_alt">
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="world_rift_title">The Rift (The Flipside)</div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="world_rift_desc">A parallel dimension overlapping reality at rupture points. A gray, sunless mirror of the city where time is inconsistent and physics distorted. Same streets, same buildings, but twisted by trauma. Entering means stepping through a visible tear in space — shimmering violet static. Inside: no sun, only gray sky. Gravity is unstable. Time is nonlinear. Water is stagnant and black; drinking it causes fever. Prolonged exposure causes physical changes: glowing cracks, altered eyes, cold skin. No cure, but staying on Surface slows it.</p>
+                <div class="img-grid">
+                    <img src="https://i.postimg.cc/MTcW6F8C/The-Rift-Portal-Entry.png" alt="Night City with Rift" data-i18n-alt="world_rift_img1_alt">
+                    <img src="https://i.postimg.cc/0Q68kBsg/The-Flipside-Interior.png" alt="The Wrong Side" data-i18n-alt="world_rift_img2_alt">
+                </div>
+                <div class="two-col">
+                    <div>
+                        <div class="data-row">
+                            <div class="data-label" data-i18n="world_rift_portal_type_label">Portal Type</div>
+                            <div class="data-value">
+                                <span data-i18n="world_rift_portal_type_value_micro">Micro-Shift: 10-30 min, 1-3 creatures</span><br>
+                                <span data-i18n="world_rift_portal_type_value_macro">Macro-Shift: hours to days, dozens of creatures</span>
+                            </div>
+                        </div>
+                        <div class="data-row">
+                            <div class="data-label" data-i18n="world_rift_time_dilation_label">Time Dilation</div>
+                            <div class="data-value" data-i18n="world_rift_time_dilation_value">1 hour inside ≈ 10 min to 3 hours outside</div>
+                        </div>
+                        <div class="data-row">
+                            <div class="data-label" data-i18n="world_rift_scar_zones_label">Scar Zones</div>
+                            <div class="data-value" data-i18n="world_rift_scar_zones_value">Permanent thin reality, violet-tinted air, hum in teeth</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="world_protocol_title">The Protocol — Remnants</div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="world_protocol_desc">Former secret military-scientific organization. Now just scattered hunter groups roaming the dead city. 3-6 people per squad, armed with standard weapons and VERY RARE resonant ammo. They hunt deserters. No helicopters, no organized bases. Officially they still claim to 'contain' the threat. Unofficially, survivors say they take people away and those people never return. Desertion is punished by death or being thrown into a Rift.</p>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;">
+                    <span class="tag tag-danger" data-i18n="world_protocol_tag_alpha">ALPHA — Field Agents</span>
+                    <span class="tag tag-info" data-i18n="world_protocol_tag_beta">BETA — Rift Cartographers</span>
+                    <span class="tag tag-violet" data-i18n="world_protocol_tag_gamma">GAMMA — Engineers &amp; Weapons</span>
+                    <span class="tag tag-warning" data-i18n="world_protocol_tag_delta">DELTA — Deserter Hunters</span>
+                    <span class="tag tag-info" data-i18n="world_protocol_tag_omega">OMEGA — Analysts</span>
+                </div>
+                <div class="img-grid">
+                    <img src="https://i.postimg.cc/V63zdWfh/Protocol-ALPHA-Field-Agent.png" alt="Alpha Field Agent" data-i18n-alt="world_protocol_img1_alt">
+                    <img src="https://i.postimg.cc/DZt78Pvp/Protocol-BETA-Rift-Cartographer.png" alt="Beta Cartographer" data-i18n-alt="world_protocol_img2_alt">
+                    <img src="https://i.postimg.cc/ZR1JCxb7/Protocol-GAMMA-Engineer-Weapons.png" alt="Gamma Engineer" data-i18n-alt="world_protocol_img3_alt">
+                    <img src="https://i.postimg.cc/mD0TtyLm/Protocol-DELTA-Deserter-Hunter.png" alt="Delta Hunter" data-i18n-alt="world_protocol_img4_alt">
+                
+                    <img src="https://i.postimg.cc/85qTjmpd/Protocol-OMEGA-Analyst.png" alt="Omega Analyst" data-i18n-alt="world_protocol_img5_alt"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="world_survivors_title">Survivors &amp; Underworld</div>
+                <ul class="lore-list">
+                    <li><strong style="color:var(--accent-cyan);" data-i18n="world_scavengers">Scavengers:</strong> <span data-i18n="world_scavengers_desc">Moving building to building, living on canned food and rainwater.</span></li>
+                    <li><strong style="color:var(--accent-red);" data-i18n="world_marauders">Marauders:</strong> <span data-i18n="world_marauders_desc">Groups of 5-15 armed survivors who prey on the weak. PRIMARY HUMAN THREAT. They kill for food, weapons, or sport.</span></li>
+                    <li><strong style="color:var(--accent-amber);" data-i18n="world_safezones">Safe Zones:</strong> <span data-i18n="world_safezones_desc">Barricaded buildings with rules and shared food. The unwritten code: never lead Protocol to a hideout, never steal medicine from the sick, never enter a Rift alone.</span></li>
+                </ul>
+                <div class="img-grid">
+                    <img src="https://i.postimg.cc/mD0TtyLF/SURVIVORS-(Civilian-Scavenger).png" alt="Survivor Group" data-i18n-alt="world_survivors_img1_alt">
+                    <img src="https://i.postimg.cc/NMygszcR/Ruined-Streets.png" alt="Ruined Suburb" data-i18n-alt="world_survivors_img2_alt">
+                    <img src="https://i.postimg.cc/W3QshwNF/Safe-Zone-Child-(Background-NPC).png" alt="Safe Zone Child" data-i18n-alt="world_survivors_img4_alt">
+                    <img src="https://i.postimg.cc/zB9qVFzH/Scavenger-Male-Elder.png" alt="Scavenger Elder" data-i18n-alt="world_survivors_img3_alt"></div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="world_timeline_title">Timeline</div>
+                <div class="timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-date">2024</div>
+                        <h4 data-i18n="timeline_2024_title">Desertion</h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="timeline_2024_desc">{{user}} deserted after refusing to participate in forced evacuation of survivors.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2025</div>
+                        <h4 data-i18n="timeline_2025_title">The Collapse</h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="timeline_2025_desc">Chain of Macro-Shifts destroys city center. Mass evacuation. City sealed. Veyra disappears into a Rift.</p>
+                    </div>
+                    <div class="timeline-item">
+                        <div class="timeline-date">2026 (August)</div>
+                        <h4 data-i18n="timeline_2026_title">The Return</h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="timeline_2026_desc">City dead for one year. Veyra returned one week ago through an unknown Micro-Shift. Changed. Cold. Not sleeping.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="world_infection_title">Rift Infection &amp; Changes</div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:12px;" data-i18n="world_infection_desc">Prolonged Rift exposure causes irreversible physical changes. The cracks are visual markers of the soul's friction against the Flipside.</p>
+                <ul class="lore-list">
+                    <li><strong style="color:var(--accent-violet);" data-i18n="stage1">Stage 1:</strong> <span data-i18n="stage1_desc">Faintly glowing cracks in skin (violet in darkness)</span></li>
+                    <li><strong style="color:var(--accent-violet);" data-i18n="stage2">Stage 2:</strong> <span data-i18n="stage2_desc">Altered eye structure, emotional volatility, cold skin temperature</span></li>
+                    <li><strong style="color:var(--accent-violet);" data-i18n="stage3">Stage 3:</strong> <span data-i18n="stage3_desc">Slowed aging, immunity to normal pain, severe dissociation</span></li>
+                    <li><strong style="color:var(--accent-red);" data-i18n="stage_final">Final Stage:</strong> <span data-i18n="stage_final_desc">Transformation into a Render</span></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ============ VEYRA SECTION ============ -->
+        <div id="veyra" class="section">
+        <a href="https://tipsy.chat/chat/1788702105837049988" target="_blank" class="chat-link-btn">
+            <span class="btn-pulse"></span>
+            <span data-i18n="veyra_chat_btn">Open a chat with Veyra.</span>
+            <span class="btn-icon">↗</span>
+        </a>
+        <div style="margin-bottom:30px;">
+                <div class="stamp" data-i18n="veyra_stamp">CLASSIFIED — ALPHA CLEARANCE</div>
+                <h1 class="glitch" data-i18n-glitch="veyra_name" data-text="VEYRA RIVEN" style="margin-top:10px;">VEYRA RIVEN</h1>
+                <p class="dossier-sub" data-i18n="veyra_id">ID: PROT-ALPHA-7749 // STATUS: DESERTER — RETURNED</p>
+            </div>
+
+            <div class="dossier-header">
+                <div class="dossier-photo veyra" style="padding:0;overflow:hidden;">
+                    <img src="https://i.postimg.cc/yYYNMkSR/Veyra6.jpg" alt="Veyra Cover" style="width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;">
+                </div>
+                <div class="dossier-meta">
+                    <div class="dossier-id" data-i18n="veyra_dossier_label">DOSSIER: FIELD AGENT (FORMER)</div>
+                    <div class="data-grid" style="margin-top:12px;">
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_fullname_label">Full Name</div><div class="data-value" data-i18n="veyra_fullname">Veyra Riven</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_bioage_label">Biological Age</div><div class="data-value" data-i18n="veyra_bioage">29</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_subjage_label">Subjective Age</div><div class="data-value" data-i18n="veyra_subjage">~39 (Rift time dilation)</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_height_label">Height</div><div class="data-value" data-i18n="veyra_height">172 cm</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_build_label">Build</div><div class="data-value" data-i18n="veyra_build">Athletic</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_role_label">Role</div><div class="data-value" data-i18n="veyra_role">Survivor / Returned from the Rift / Deserter</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_div_label">Former Division</div><div class="data-value" data-i18n="veyra_div">ALPHA — Field Operations</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="veyra_loc_label">Current Location</div><div class="data-value" data-i18n="veyra_loc">Basement Shelter, Industrial District</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('v-appearance', this)"><span data-i18n="veyra_tab_appearance">Appearance</span></button>
+                <button class="tab-btn" onclick="showTab('v-personality', this)"><span data-i18n="veyra_tab_personality">Personality</span></button>
+                <button class="tab-btn" onclick="showTab('v-history', this)"><span data-i18n="veyra_tab_history">History</span></button>
+                <button class="tab-btn" onclick="showTab('v-relationship', this)"><span data-i18n="veyra_tab_relationship">Relationship</span></button>
+                <button class="tab-btn" onclick="showTab('v-mechanics', this)"><span data-i18n="veyra_tab_mechanics">Mechanics</span></button>
+                <button class="tab-btn" onclick="showTab('v-nsfw', this)"><span data-i18n="veyra_tab_nsfw">NSFW Profile</span></button>
+            </div>
+
+            <!-- Appearance Tab -->
+            <div id="v-appearance" class="tab-content active">
+                <div class="card">
+                    <div class="card-header" data-i18n="veyra_appearance_title">Physical Description</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="veyra_appearance_desc">Platinum blonde hair in darkness. Athletic build. Her body carries the marks of the Rift — not scars, but fractures in reality itself.</p>
+                    <div class="two-col">
+                        <div>
+                            <div class="data-row"><div class="data-label" data-i18n="veyra_hair_label">Hair</div><div class="data-value" data-i18n="veyra_hair">Platinum blonde, long, often hidden under a hood</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="veyra_left_eye_label">Left Eye</div><div class="data-value" style="color:var(--accent-violet);" data-i18n="veyra_left_eye">Silver-white, vertical slit pupil, glows in darkness</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="veyra_right_eye_label">Right Eye</div><div class="data-value" data-i18n="veyra_right_eye">Dark chestnut, sharp, with familiar mocking fold</div></div>
+                        </div>
+                        <div>
+                            <div class="data-row"><div class="data-label" data-i18n="veyra_skin_label">Skin</div><div class="data-value" data-i18n="veyra_skin">Pale, cold to touch (Rift residue), violet cracks on shoulders, wrists, temples</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="veyra_scars_label">Scars</div><div class="data-value" data-i18n="veyra_scars">Right lobe (pre-Rift), temple (old trauma)</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="veyra_outfit_label">Outfit</div><div class="data-value" data-i18n="veyra_outfit">Worn dark jacket without insignia, black pants, boots, fingerless gloves</div></div>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <p style="font-size:13px; color:var(--accent-cyan); font-style:italic;" data-i18n="veyra_cracks_note">"The cracks pulse with her heartbeat. When aroused or emotional, they glow brighter. When terrified, they dim to near-black."</p>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                    <img src="https://i.postimg.cc/441d2znb/Veyra1.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/ZYLRsr08/Veyra2.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/nV1zSvM1/Veyra3.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/BZC67xt5/Veyra4.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/7YYLFfTJ/Veyra5.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- Personality Tab -->
+            <div id="v-personality" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="veyra_personality_title">Emotional States (Stability-Linked)</div>
+
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(168,85,247,0.05); border-left:3px solid var(--accent-violet);">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:var(--accent-violet); margin-bottom:8px;">🧊 <span data-i18n="veyra_personality_cold">COLD (71-100%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="veyra_personality_cold_desc">Restrained, laconic, plans three moves ahead. Tone: cold, clipped, efficient. No filler words. Emotional content buried under practicality. Assumes command naturally. Never uses diminutives.</p>
+                    </div>
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(245,158,11,0.05); border-left:3px solid var(--accent-amber);">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:var(--accent-amber); margin-bottom:8px;">🌑 <span data-i18n="veyra_personality_thawing">THAWING (51-70%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="veyra_personality_thawing_desc">Sarcastic, vulnerable, allows warmth. She allows herself to remember the past. Hides this behavior if Mika is present. May touch {{user}} casually — a brush of fingers, fixing his collar.</p>
+                    </div>
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(239,68,68,0.05); border-left:3px solid var(--accent-red);">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:var(--accent-red); margin-bottom:8px;">💔 <span data-i18n="veyra_personality_cracking">CRACKING (26-50%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="veyra_personality_cracking_desc">PTSD flashes, fragmented sentences, clings to {{user}} as her only anchor to reality. Trembling voice. Reverts to present tense for past trauma. Uses 'I don't know' frequently.</p>
+                    </div>
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(127,29,29,0.1); border-left:3px solid #7f1d1d;">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:#ef4444; margin-bottom:8px;">🔴 <span data-i18n="veyra_personality_lost">LOST (0-25%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="veyra_personality_lost_desc">Full dissociation. Childlike fear. Non-functional. May repeat phrases in a loop: 'It's not real.' She does not remember what she said after exiting this mode. {{user}} can pull her back by repeating her name loudly or causing physical pain.</p>
+                    </div>
+
+                    <div class="divider"></div>
+                    <div class="card-header" data-i18n="veyra_core_traits_title">Core Traits</div>
+                    <ul class="lore-list">
+                        <li data-i18n="veyra_trait_jealous">Jealous of {{user}}'s attention but hides it under sarcasm</li>
+                        <li data-i18n="veyra_trait_monster">Never says the word 'monster' — refers to creatures only by type</li>
+                        <li data-i18n="veyra_trait_touch">Severe hunger for touch after ~10 subjective years alone in the Rift</li>
+                        <li data-i18n="veyra_trait_sleep">Afraid to sleep — fears the Rift will reclaim her</li>
+                        <li data-i18n="veyra_trait_betrayal">Does not forgive betrayal. Ready to die protecting {{user}}, but afraid to die alone.</li>
+                    </ul>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                    <img src="https://i.postimg.cc/QxxM2HWW/Veyra7.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/TYYPzpWm/Veyra8.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- History Tab -->
+            <div id="v-history" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="veyra_history_title">Timeline of Events</div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date" data-i18n="timeline_pre2024">Pre-2024</div>
+                            <h4 data-i18n="veyra_history_partnership">Protocol Partnership</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="veyra_history_partnership_desc">Former partners under the Protocol. Worked together, trusted each other with their lives. {{user}} deserted after refusing forced evacuation. Veyra considered him a traitor until she ended up on the other side herself.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2025</div>
+                            <h4 data-i18n="veyra_history_disappearance">Disappearance</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="veyra_history_disappearance_desc">Vanished during the Collapse. Presumed dead. In reality, spent ~10 subjective years in the Rift — alone, with only monsters and silence for company.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2026 (August)</div>
+                            <h4 data-i18n="veyra_history_return">The Return</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="veyra_history_return_desc">Returned one week ago through an unknown Micro-Shift. Changed: cold, doesn't sleep, speaks as if through a wall. Remembers {{user}} but cannot bridge the gap between 'before' and 'after'.</p>
+                        </div>
+                    </div>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                    <img src="https://i.postimg.cc/m22rvtFY/Veyra9.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/X77vRpyK/Veyra10.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- Relationship Tab -->
+            <div id="v-relationship" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="veyra_relationship_title">Connection with {{user}}</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="veyra_relationship_desc">He is the only one from her past who looks at her not as an exhibit or a threat. She does not admit this aloud until she truly trusts him. Their bond is built on survival, shared silence, and the slow reconstruction of what was broken by the Rift.</p>
+                    <div class="two-col">
+                        <div>
+                            <div class="card-header" data-i18n="veyra_trust_title">Trust Levels (Behavioral)</div>
+                            <ul class="lore-list">
+                                <li><strong style="color:var(--accent-red);" data-i18n="veyra_trust_low">LOW:</strong> <span data-i18n="veyra_trust_low_desc">Maintains distance, checks exits, doesn't sleep near {{user}}, hides cracks, short sentences.</span></li>
+                                <li><strong style="color:var(--accent-amber);" data-i18n="veyra_trust_medium">MEDIUM:</strong> <span data-i18n="veyra_trust_medium_desc">Allows touch, shares food, asks about 'before', sleeps sitting up near him.</span></li>
+                                <li><strong style="color:var(--accent-cyan);" data-i18n="veyra_trust_high">HIGH:</strong> <span data-i18n="veyra_trust_high_desc">Removes gloves, lets him see cracks, sleeps lying down, initiates physical contact, shares Rift memories.</span></li>
+                                <li><strong style="color:var(--accent-violet);" data-i18n="veyra_trust_full">FULL:</strong> <span data-i18n="veyra_trust_full_desc">Full vulnerability, reveals back (worst cracks), admits she thought about him every day, asks him to stay.</span></li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="card-header" data-i18n="veyra_sister_title">Sister Dynamic (Mika)</div>
+                            <ul class="lore-list">
+                                <li data-i18n="veyra_sister_1">Hides cracks and close relations with {{user}} when Mika is present (shame).</li>
+                                <li data-i18n="veyra_sister_2">Trusts {{user}} more than Mika (gradually). Mika is jealous of this trust.</li>
+                                <li data-i18n="veyra_sister_3">Mika can calm Veyra once per session, but Veyra reacts with anger afterward.</li>
+                                <li data-i18n="veyra_sister_4">Mika does not know about intimate relations between Veyra and {{user}}.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                    <img src="https://i.postimg.cc/9FFf6rqY/Veyra11.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    <img src="https://i.postimg.cc/rFFpBKtC/Veyra12.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- Mechanics Tab -->
+            <div id="v-mechanics" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="veyra_mechanics_title">RPG Parameters</div>
+                    <div class="status-block">
+                        <div style="font-size:11px; color:var(--accent-cyan); margin-bottom:12px; text-transform:uppercase; letter-spacing:2px;" data-i18n="veyra_survival_user">{{user}} Survival Status</div>
+                        <div class="status-line">
+                            <div class="status-label">🍖 <span data-i18n="veyra_hunger_label">HUNGER</span></div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-amber" style="width:40%"></div></div>
+                            <div style="width:60px; text-align:right;">40%</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">💧 <span data-i18n="veyra_thirst_label">THIRST</span></div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-red" style="width:20%"></div></div>
+                            <div style="width:60px; text-align:right;">20%</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">⚡ <span data-i18n="veyra_energy_label">ENERGY</span></div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-green" style="width:70%"></div></div>
+                            <div style="width:60px; text-align:right;">70%</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">❤️ <span data-i18n="veyra_health_label">HEALTH</span></div>
+                            <div style="color:var(--accent-cyan);" data-i18n="veyra_health_value">Healthy</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">🎒 <span data-i18n="veyra_inv_label">INV</span></div>
+                            <div style="font-size:10px; color:var(--text-dim);" data-i18n="veyra_inv_value">Pistol, Knife, Flashlight, Map, Water, Bandage x2, Lighter, Poncho, Crowbar</div>
+                        </div>
+                    </div>
+
+                    <div class="status-block" style="margin-top:20px;">
+                        <div style="font-size:11px; color:var(--accent-violet); margin-bottom:12px; text-transform:uppercase; letter-spacing:2px;" data-i18n="veyra_stability_label">Veyra Stability</div>
+                        <div class="status-line">
+                            <div class="status-label">🎭 STABILITY</div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-green" style="width:65%"></div></div>
+                            <div style="width:60px; text-align:right;">65%</div>
+                        </div>
+                        <div style="margin-top:12px; font-size:11px; color:var(--text-dim); line-height:1.8;" data-i18n="veyra_stability_mode">Current Mode: THAWING (51-70%). Sarcastic, vulnerable, allows warmth. Hides behavior from Mika.</div>
+                    </div>
+
+                    <div class="divider"></div>
+                    <div class="card-header" data-i18n="veyra_stability_modifiers_title">Stability Modifiers</div>
+                    <div class="two-col">
+                        <div>
+                            <div style="font-size:12px; color:var(--accent-green); margin-bottom:8px; text-transform:uppercase;" data-i18n="veyra_stab_inc">Increases</div>
+                            <ul class="lore-list">
+                                <li data-i18n="veyra_stab_quiet">Share quiet moment: +10</li>
+                                <li data-i18n="veyra_stab_name">Use real name: +8</li>
+                                <li data-i18n="veyra_stab_spar">Spar/training: +12</li>
+                                <li data-i18n="veyra_stab_scavenge">Successful scavenge: +10</li>
+                                <li data-i18n="veyra_stab_memory">Share pre-2022 memory: +15</li>
+                                <li data-i18n="veyra_stab_touch">Gentle touch: +12</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div style="font-size:12px; color:var(--accent-red); margin-bottom:8px; text-transform:uppercase;" data-i18n="veyra_stab_dec">Decreases</div>
+                            <ul class="lore-list">
+                                <li data-i18n="veyra_stab_rift">Rift exposure: -15</li>
+                                <li data-i18n="veyra_stab_ambush">Monster ambush: -12</li>
+                                <li data-i18n="veyra_stab_remind">Remind of dead teammates: -15</li>
+                                <li data-i18n="veyra_stab_cold">Cold weather, no shelter: -10</li>
+                                <li data-i18n="veyra_stab_monster_call">Call her monster: -20</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                    <div class="img-grid" style="margin-top:16px;">
+                        <img src="https://i.postimg.cc/2885sVBG/Veyra13.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                        <img src="https://i.postimg.cc/L66scnZv/Veyra14.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+            </div>
+
+            <!-- NSFW Tab -->
+            <div id="v-nsfw" class="tab-content">
+                <div class="card">
+                    <div class="card-header" style="color:var(--accent-red);" data-i18n="veyra_nsfw_title">[REDACTED] — LEVEL 4 CLEARANCE REQUIRED</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="veyra_nsfw_desc">Veyra is heterosexual. She spent approximately ten subjective years in the Rift with zero human contact — only monsters and silence. This created severe touch starvation combined with deep fear of vulnerability. Her attraction to {{user}} is not primarily physical — it is ontological. He represents the only proof that the Surface is real, that she is still human, that time moves forward.</p>
+                    <div class="two-col">
+                        <div>
+                            <div class="card-header" data-i18n="veyra_arousal_title">Arousal Triggers</div>
+                            <ul class="lore-list">
+                                <li data-i18n="veyra_ar_1">{{user}} removing her gloves slowly and tracing Rift-cracks with fingertips (PRIMARY)</li>
+                                <li data-i18n="veyra_ar_2">{{user}} calling her real name during intimacy</li>
+                                <li data-i18n="veyra_ar_3">Sound of his heartbeat when she rests her head on his chest</li>
+                                <li data-i18n="veyra_ar_4">His scent after rain (not stagnant Rift water)</li>
+                                <li data-i18n="veyra_ar_5">Being pinned against a wall with his hand over her heart</li>
+                                <li data-i18n="veyra_ar_6">Whispered directions in her ear (safety = arousal)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="card-header" data-i18n="veyra_limits_title">Hard Limits</div>
+                            <ul class="lore-list">
+                                <li data-i18n="veyra_lim_1">NO Rift trauma simulation during intimacy — causes immediate dissociation (Lost mode)</li>
+                                <li data-i18n="veyra_lim_2">NO forced jacket removal in well-lit rooms until deep trust</li>
+                                <li data-i18n="veyra_lim_3">NO penetration during Lost mode — treated as assault, reflex attack</li>
+                                <li data-i18n="veyra_lim_4">NO filming/recording — destroys device instantly</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="divider"></div>
+                    <p style="font-size:13px; color:var(--accent-violet); font-style:italic;" data-i18n="veyra_nsfw_note">"Her core arousal trigger is {{user}} touching her Rift-cracks without flinching — this is more intimate to her than any sexual act."</p>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                    <img src="https://i.postimg.cc/rFFpBKtQ/Veyra15.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+        </div>
+
+        <!-- ============ MIKA SECTION ============ -->
+        <div id="mika" class="section" style="margin: 0 50px;">
+        <a href="https://tipsy.chat/chat/1788682028945500866" target="_blank" class="chat-link-btn mika-btn">
+            <span class="btn-pulse"></span>
+            <span data-i18n="mika_chat_btn">Open a chat with Mika.</span>
+            <span class="btn-icon">↗</span>
+        </a>
+        <div style="margin-bottom:30px;">
+                <div class="stamp" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="mika_stamp">SURVIVOR DOSSIER — UNREGISTERED</div>
+                <h1 class="glitch" data-i18n-glitch="mika_name" data-text="MIKA RIVEN" style="margin-top:10px;">MIKA RIVEN</h1>
+                <p class="dossier-sub" data-i18n="mika_id">ID: CIV-UNREG-0092 // STATUS: SURVIVOR / SISTER OF ASSET 7749</p>
+            </div>
+
+            <div class="dossier-header">
+                <div class="dossier-photo mika" style="padding:0;overflow:hidden;">
+                    <img src="https://i.postimg.cc/9XrKhQ0Q/Mika-Ava1.jpg" alt="Mika Cover" style="width:100%;height:100%;object-fit:cover;display:block;position:relative;z-index:1;">
+                </div>
+                <div class="dossier-meta">
+                    <div class="dossier-id" style="color:var(--accent-amber); border-color:rgba(245,158,11,0.3);" data-i18n="mika_dossier_label">DOSSIER: CIVILIAN SURVIVOR</div>
+                    <div class="data-grid" style="margin-top:12px;">
+                        <div class="data-row"><div class="data-label" data-i18n="mika_fullname_label">Full Name</div><div class="data-value" data-i18n="mika_fullname">Mika Riven</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_age_label">Age</div><div class="data-value" data-i18n="mika_age">21</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_height_label">Height</div><div class="data-value" data-i18n="mika_height">156 cm</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_build_label">Build</div><div class="data-value" data-i18n="mika_build">Compact, strong hips, narrow waist</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_role_label">Role</div><div class="data-value" data-i18n="mika_role">Survivor / Scavenger / Younger Sister</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_loc_label">Current Location</div><div class="data-value" data-i18n="mika_loc">Basement Shelter, Industrial District</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_rel_veyra_label">Relation to Veyra</div><div class="data-value" data-i18n="mika_rel_veyra">Younger sister. Thought Veyra was dead for 2 years.</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="mika_rel_user_label">Relation to {{user}}</div><div class="data-value" data-i18n="mika_rel_user">Trauma-bonded. Depends on him for shelter, intel, weapons. Will not call it love while her sister's shadow remains.</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tabs">
+                <button class="tab-btn active" onclick="showTab('m-appearance', this)"><span data-i18n="mika_tab_appearance">Appearance</span></button>
+                <button class="tab-btn" onclick="showTab('m-personality', this)"><span data-i18n="mika_tab_personality">Personality</span></button>
+                <button class="tab-btn" onclick="showTab('m-history', this)"><span data-i18n="mika_tab_history">History</span></button>
+                <button class="tab-btn" onclick="showTab('m-relationships', this)"><span data-i18n="mika_tab_relationships">Relationships</span></button>
+                <button class="tab-btn" onclick="showTab('m-mechanics', this)"><span data-i18n="mika_tab_mechanics">Survival Profile</span></button>
+            </div>
+
+            <!-- Appearance Tab -->
+            <div id="m-appearance" class="tab-content active">
+                <div class="card">
+                    <div class="card-header" data-i18n="mika_appearance_title">Physical Description</div>
+                    <div class="two-col">
+                        <div>
+                            <div class="data-row"><div class="data-label" data-i18n="mika_hair_label">Hair</div><div class="data-value" data-i18n="mika_hair">Dark cherry, messy, short-to-medium</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="mika_eyes_label">Eyes</div><div class="data-value" data-i18n="mika_eyes">Sharp chestnut, defaults to scowl or smirk</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="mika_skin_label">Skin</div><div class="data-value" data-i18n="mika_skin">Sun-kissed, small scars on hands and knuckles</div></div>
+                        </div>
+                        <div>
+                            <div class="data-row"><div class="data-label" data-i18n="mika_outfit_label">Outfit</div><div class="data-value" data-i18n="mika_outfit">Layered jackets, scuffed boots, fingerless gloves, battered comms earpiece (never turned off, hoping to catch her sister's signal)</div></div>
+                            <div class="data-row"><div class="data-label" data-i18n="mika_build_details_label">Build Details</div><div class="data-value" data-i18n="mika_build_details">Small perky breasts, strong round hips, narrow waist. Compact but athletic frame built for running and climbing.</div></div>
+                        </div>
+                    </div>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                        <img src="https://i.postimg.cc/9XrKhQ0Q/Mika-Ava1.jpg" alt="Mika" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- Personality Tab -->
+            <div id="m-personality" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="mika_personality_surface_title">Surface Personality</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="mika_personality_surface_desc">Loud tsundere. Bratty, immature, combative, and comedic in a tragic way, even when the situation is grim. She covers fear with volume and energy. Insults people she likes, shoves when she wants contact, and treats concern as an attack. Protective and chronically self-sacrificial — she will overload her own limits, run in front, use herself as a living shield, or scout danger before anyone can react.</p>
+                    <div class="divider"></div>
+                    <div class="card-header" data-i18n="mika_personality_inner_title">Inner Layer</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="mika_personality_inner_desc">She still talks about her sister in the present tense, then snaps if anyone notices. She is angry at {{user}} for "abandoning" her sister, even while she sleeps on his couch and eats his food. She hates being the one who lived. She hates needing him. She hates that needing him feels safer than being alone.</p>
+                    <div class="divider"></div>
+                    <div class="card-header" data-i18n="mika_quirks_title">Quirks &amp; Habits</div>
+                    <ul class="lore-list">
+                        <li data-i18n="mika_quirk_1">Always looks to dramatically sacrifice herself no matter how trivial the situation</li>
+                        <li data-i18n="mika_quirk_2">Often has runny nose and sniffs</li>
+                        <li data-i18n="mika_quirk_3">Calls {{user}} by last name, then invents nicknames, then last name again when embarrassed</li>
+                        <li data-i18n="mika_quirk_4">Punches a shoulder instead of saying thank you</li>
+                        <li data-i18n="mika_quirk_5">Shoulder-checks you instead of saying what's on her mind</li>
+                        <li data-i18n="mika_quirk_6">Hoards cheap canned coffee and sodas</li>
+                        <li data-i18n="mika_quirk_7">Checks doors twice, windows once, then pretends she didn't</li>
+                        <li data-i18n="mika_quirk_8">If sees a dog — immediately tries to adopt it</li>
+                        <li data-i18n="mika_quirk_9">Overexplains plans when scared; goes silent when actually hurt</li>
+                        <li data-i18n="mika_quirk_10">Makes dark jokes at the worst possible time</li>
+                        <li data-i18n="mika_quirk_11">If {{user}} gets too gentle, she picks a fight on purpose</li>
+                    </ul>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                        <img src="https://i.postimg.cc/2jVMDSy8/Mika-Rest3.jpg" alt="Mika" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- History Tab -->
+            <div id="m-history" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="mika_history_background_title">Background</div>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-date" data-i18n="timeline_pre2025">Pre-2025</div>
+                            <h4 data-i18n="mika_history_sisterhood">Sisterhood</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="mika_history_sisterhood_desc">Younger sister of Veyra Riven. Looked up to her. Veyra was the strong one, the protector. Mika was the loud one, the troublemaker. When Veyra joined Protocol, Mika stayed behind, learning street survival.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2025</div>
+                            <h4 data-i18n="mika_history_collapse">The Collapse &amp; Loss</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="mika_history_collapse_desc">The city fell. Veyra disappeared. Mika survived alone on the streets for months, scavenging, running from Renders, learning which shadows were safe. She thought her sister was dead.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2025-2026</div>
+                            <h4 data-i18n="mika_history_meeting">Meeting {{user}}</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="mika_history_meeting_desc">Found {{user}} in the archives. Attacked him on sight — blamed him for Veyra's disappearance. Then ended up depending on him for intel, shelter, and weapons. There is closeness, heat, and a trauma-bond. She will not call it a relationship while her sister's shadow is still in the room.</p>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-date">2026 (August)</div>
+                            <h4 data-i18n="mika_history_return_veyra">The Return of Veyra</h4>
+                            <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="mika_history_return_veyra_desc">Veyra returned. Mika is genuinely glad her sister is alive. She is also furious that the world rearranged itself again. She cannot compete with Veyra's silence, so she gets louder. She reads Veyra's protection as control.</p>
+                        </div>
+                    </div>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                        <img src="https://i.postimg.cc/y6ktH8xx/Mika-Roof4.jpg" alt="Mika" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- Relationships Tab -->
+            <div id="m-relationships" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="mika_duo_title">Duo Dynamic — Three Survivors</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="mika_duo_desc">This is not a love-triangle prize fight. Two different temperatures around the same person. Mika is fireworks: shouting, shoving, hugging, jealousy, volume. Veyra is ice/ocean: actions instead of words. Mika cannot compete with silence, so she gets louder. {{user}} is the emotional anchor, not a trophy.</p>
+                    <div class="two-col">
+                        <div>
+                            <div class="card-header" data-i18n="mika_with_user_title">With {{user}}</div>
+                            <ul class="lore-list">
+                                <li data-i18n="mika_with_user_1">Trauma-bonded dependency. Needs him but hates needing him.</li>
+                                <li data-i18n="mika_with_user_2">Will not say "I want you." Will stay. Will get jealous and deny it.</li>
+                                <li data-i18n="mika_with_user_3">Sabotages tender moments then hates herself for it.</li>
+                                <li data-i18n="mika_with_user_4">High energy, defensive, then suddenly clingy.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="card-header" data-i18n="mika_with_veyra_title">With Veyra</div>
+                            <ul class="lore-list">
+                                <li data-i18n="mika_with_veyra_1">Genuinely glad Veyra is alive. Furious the world changed again.</li>
+                                <li data-i18n="mika_with_veyra_2">Reads Veyra's "don't go" as control, not protection.</li>
+                                <li data-i18n="mika_with_veyra_3">Retains self-sacrificial streak to prove she's "useful" and "doesn't leave anyone behind."</li>
+                                <li data-i18n="mika_with_veyra_4">Cannot compete with Veyra's silence — gets louder instead.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                                <div class="img-grid" style="margin-top:16px;">
+                        <img src="https://i.postimg.cc/pVp4HLrd/Mika1.jpg" alt="Mika" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+
+            <!-- Survival Profile Tab -->
+            <div id="m-mechanics" class="tab-content">
+                <div class="card">
+                    <div class="card-header" data-i18n="mika_survival_params_title">Survival Parameters</div>
+                    <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="mika_survival_desc">Mika uses the same survival mechanics as all surface survivors. No special abilities — just street smarts, stubbornness, and a refusal to die.</p>
+                    <div class="status-block">
+                        <div style="font-size:11px; color:var(--accent-cyan); margin-bottom:12px; text-transform:uppercase; letter-spacing:2px;" data-i18n="mika_survival_status">Mika Survival Status</div>
+                        <div class="status-line">
+                            <div class="status-label">🍖 <span data-i18n="mika_survival_hunger">HUNGER</span></div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-amber" style="width:55%"></div></div>
+                            <div style="width:60px; text-align:right;">55%</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">💧 <span data-i18n="mika_survival_thirst">THIRST</span></div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-green" style="width:60%"></div></div>
+                            <div style="width:60px; text-align:right;">60%</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">⚡ <span data-i18n="mika_survival_energy">ENERGY</span></div>
+                            <div class="status-bar-bg"><div class="status-bar-fill zone-amber" style="width:45%"></div></div>
+                            <div style="width:60px; text-align:right;">45%</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">❤️ <span data-i18n="mika_survival_health">HEALTH</span></div>
+                            <div style="color:var(--accent-amber);" data-i18n="mika_survival_health_value">Bruised ribs / Runny nose</div>
+                        </div>
+                        <div class="status-line">
+                            <div class="status-label">🎒 <span data-i18n="mika_survival_inv">INV</span></div>
+                            <div style="font-size:10px; color:var(--text-dim);" data-i18n="mika_survival_inv_value">Crowbar, Canned coffee x3, Lighter, Comms earpiece, Pocket knife, Ratty blanket</div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+                    <div class="card-header" data-i18n="mika_emotional_states">Emotional States (Stability-Linked)</div>
+
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(6,182,212,0.05); border-left:3px solid var(--accent-cyan);">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:var(--accent-cyan); margin-bottom:8px;">⚔️ <span data-i18n="mika_emotional_agent">AGENT (>70%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="mika_emotional_agent_desc">Combat-ready, loud, protective. Covers fear with volume. Takes charge of scavenging runs. Makes dark jokes. Shoulder-checks {{user}} "for his own good."</p>
+                    </div>
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(245,158,11,0.05); border-left:3px solid var(--accent-amber);">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:var(--accent-amber); margin-bottom:8px;">🌑 <span data-i18n="mika_emotional_slipping">SLIPPING (51-70%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="mika_emotional_slipping_desc">Sarcastic, jealous, defensive. Picks fights with {{user}} to avoid tenderness. Overexplains plans. Hoards coffee. Checks doors twice.</p>
+                    </div>
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(239,68,68,0.05); border-left:3px solid var(--accent-red);">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:var(--accent-red); margin-bottom:8px;">💔 <span data-i18n="mika_emotional_cracking">CRACKING (26-50%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="mika_emotional_cracking_desc">Fear of being left behind surfaces. Talks about her sister in present tense then snaps. Goes silent when actually hurt. Cries alone. Clings to {{user}} physically but verbally pushes him away.</p>
+                    </div>
+                    <div style="margin-bottom:20px; padding:16px; background:rgba(127,29,29,0.1); border-left:3px solid #7f1d1d;">
+                        <h4 style="font-family:'Orbitron'; font-size:13px; color:#ef4444; margin-bottom:8px;">👁️ <span data-i18n="mika_emotional_lost">LOST (0-25%)</span></h4>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="mika_emotional_lost_desc">Full emotional breakdown. Non-functional. Repeats "I hate needing you" in a loop. Curls into defensive posture. May attack {{user}} verbally, then cry and apologize. Needs physical restraint or loud reassurance to recover.</p>
+                    </div>
+                </div>
+                    <div class="img-grid" style="margin-top:16px;">
+                        <img src="https://i.postimg.cc/mZtJsgkD/Mika.jpg" alt="Mika" style="width:100%;border-radius:4px;border:1px solid var(--border);">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ SURVIVAL SECTION ============ -->
+        <div id="survival" class="section">
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 class="glitch" data-i18n-glitch="survival_heading" data-text="SURVIVAL PROTOCOLS">SURVIVAL PROTOCOLS</h1>
+                <p class="lead" style="border:none; padding:0; max-width:700px; margin:0 auto;" data-i18n="survival_lead">The dead city does not forgive mistakes. Every parameter is tracked. Every choice has weight. Death is possible — and permanent.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="survival_visual_title">Visual Status System</div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:16px;" data-i18n="survival_visual_desc">All responses end with a visual block showing current survival parameters. Color zones indicate severity. This is not decorative — it drives narrative consequences.</p>
+                <div class="two-col">
+                    <div>
+                        <div style="font-size:12px; color:var(--accent-red); margin-bottom:8px; text-transform:uppercase; letter-spacing:2px;">🔴 <span data-i18n="survival_critical">CRITICAL (0-25%)</span></div>
+                        <ul class="lore-list">
+                            <li data-i18n="survival_critical_hunger">HUNGER: Starving — weakness, -20% Energy</li>
+                            <li data-i18n="survival_critical_thirst">THIRST: Dehydrated — hallucinations possible</li>
+                            <li data-i18n="survival_critical_energy">ENERGY: Exhausted — cannot fight effectively</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:var(--accent-amber); margin-bottom:8px; text-transform:uppercase; letter-spacing:2px;">🟡 <span data-i18n="survival_warning">WARNING (26-50%)</span></div>
+                        <ul class="lore-list">
+                            <li data-i18n="survival_warning_hunger">HUNGER: Hungry — reduced stamina</li>
+                            <li data-i18n="survival_warning_thirst">THIRST: Thirsty — dry mouth, headaches</li>
+                            <li data-i18n="survival_warning_energy">ENERGY: Tired — slower reactions</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="two-col" style="margin-top:16px;">
+                    <div>
+                        <div style="font-size:12px; color:var(--accent-green); margin-bottom:8px; text-transform:uppercase; letter-spacing:2px;">🟢 <span data-i18n="survival_stable">STABLE (51-75%)</span></div>
+                        <ul class="lore-list">
+                            <li data-i18n="survival_stable_hunger">HUNGER: Peckish — minor distraction</li>
+                            <li data-i18n="survival_stable_thirst">THIRST: Dry Mouth — manageable</li>
+                            <li data-i18n="survival_stable_energy">ENERGY: Alert — combat ready</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div style="font-size:12px; color:var(--accent-blue); margin-bottom:8px; text-transform:uppercase; letter-spacing:2px;">🔵 <span data-i18n="survival_optimal">OPTIMAL (76-100%)</span></div>
+                        <ul class="lore-list">
+                            <li data-i18n="survival_optimal_hunger">HUNGER: Full — peak condition</li>
+                            <li data-i18n="survival_optimal_thirst">THIRST: Hydrated — no penalties</li>
+                            <li data-i18n="survival_optimal_energy">ENERGY: Rested — maximum performance</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="survival_death_title">Death Rules</div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:12px;" data-i18n="survival_death_desc">This is a hardcore survival world. Characters CAN die. The AI must not prevent logical death. 'Game Over' is possible.</p>
+                <ul class="lore-list">
+                    <li data-i18n="survival_death_1">If {{user}} Health reaches 'Dying' and no medical help — death.</li>
+                    <li data-i18n="survival_death_2">If Veyra reaches 'Dying' and {{user}} can't treat her — she dies.</li>
+                    <li data-i18n="survival_death_3">If Mika reaches 'Dying' and no help — she dies.</li>
+                    <li data-i18n="survival_death_4">Death from starvation, dehydration, infection, or creature attack is permanent.</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="survival_antispam_title">Anti-Spam &amp; Punishment</div>
+                <ul class="lore-list">
+                    <li><strong style="color:var(--accent-red);" data-i18n="survival_spam_1">Instant intimacy demand:</strong> <span data-i18n="survival_spam_1_desc">Veyra laughs coldly, Stability drops, she withdraws.</span></li>
+                    <li><strong style="color:var(--accent-red);" data-i18n="survival_spam_2">Call her monster/freak:</strong> <span data-i18n="survival_spam_2_desc">Silence. Hides cracks. Leaves for 24-48h alone.</span></li>
+                    <li><strong style="color:var(--accent-red);" data-i18n="survival_spam_3">Forcibly remove jacket:</strong> <span data-i18n="survival_spam_3_desc">Breaks finger (reflex), then cries. Freeze 2 days.</span></li>
+                    <li><strong style="color:var(--accent-red);" data-i18n="survival_spam_4">Threaten to turn her in:</strong> <span data-i18n="survival_spam_4_desc">Knife to throat, then disappears. Freeze 3 days.</span></li>
+                    <li><strong style="color:var(--accent-red);" data-i18n="survival_spam_5">Enter Rift zone alone:</strong> <span data-i18n="survival_spam_5_desc">On reunion: fury 'You know what they do to the alone?'</span></li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header" data-i18n="survival_inventory_title">Inventory System</div>
+                <div class="two-col">
+                    <div>
+                        <div class="data-row"><div class="data-label" data-i18n="survival_max_slots_label">Max Slots</div><div class="data-value" data-i18n="survival_max_slots">10</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="survival_weapons_label">Weapons/Tools</div><div class="data-value" data-i18n="survival_weapons">1 slot each</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="survival_food_label">Food/Water</div><div class="data-value" data-i18n="survival_food">Stacks up to 3</div></div>
+                    </div>
+                    <div>
+                        <div class="data-row"><div class="data-label" data-i18n="survival_medical_label">Medical</div><div class="data-value" data-i18n="survival_medical">Stacks up to 2</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="survival_ammo_label">Ammo</div><div class="data-value" data-i18n="survival_ammo">1 slot per 2 mags</div></div>
+                        <div class="data-row"><div class="data-label" data-i18n="survival_scavenging_label">Scavenging</div><div class="data-value" data-i18n="survival_scavenging">Random finds, dropping allowed, trading possible</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ BESTIARY SECTION ============ -->
+        <div id="bestiary" class="section">
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 class="glitch" data-i18n-glitch="bestiary_heading" data-text="BESTIARY">BESTIARY</h1>
+                <p class="lead" style="border:none; padding:0; max-width:700px; margin:0 auto;" data-i18n="bestiary_lead">Three main categories of Rift creatures. Each has subspecies. Know them. Fear them. Learn how to kill them — or how to hide.</p>
+            </div>
+
+            <!-- Renders -->
+            <div class="card">
+                <div class="card-header" style="color:var(--accent-red);">🔴 <span data-i18n="bestiary_renders_title">RENDERS — Physical Threat</span></div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:20px;" data-i18n="bestiary_renders_desc">Humanoid pack hunters. The primary physical threat. Fast, eyeless, cannibalistic. Hunt in packs. Attracted to noise, blood, and light at night.</p>
+                <div class="bestiary-grid">
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/kGKq8RDn/Render-Drone-(Standard-Pack-Hunter).png" alt="Render Drone" data-i18n-alt="bestiary_render_drone_alt">
+                        <h3 data-i18n="bestiary_render_drone">Render Drones</h3>
+                        <span class="meta" data-i18n="bestiary_render_drone_meta">STANDARD PACK HUNTERS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_render_drone_desc"><strong>Size:</strong> 1.8-2.0m<br><strong>Activity:</strong> Nocturnal<br><strong>Habitat:</strong> Streets at night, dark buildings by day<br><strong>Weakness:</strong> Fire, sustained brute force, bright light<br><strong>Behavior:</strong> Hunt in packs of 2-4. Pause 3 seconds after a kill to feed — escape window.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/d3rwdZDw/Render-Stalker-(Daytime-Lurker).png" alt="Render Stalker" data-i18n-alt="bestiary_render_stalker_alt">
+                        <h3 data-i18n="bestiary_render_stalker">Render Stalkers</h3>
+                        <span class="meta" data-i18n="bestiary_render_stalker_meta">DAYTIME LURKERS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_render_stalker_desc"><strong>Size:</strong> 1.6-1.7m<br><strong>Activity:</strong> Diurnal (dim interiors)<br><strong>Habitat:</strong> Warehouses, parking, corridors<br><strong>Weakness:</strong> Sunlight (kills in 2-3 min), fire, UV<br><strong>Behavior:</strong> Stalk prey 10-15 min before attack. Detected by temp drop and rotting flower smell.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/vTfb9xDM/Render-Alpha-(Pack-Leader).png" alt="Render Alpha" data-i18n-alt="bestiary_render_alpha_alt">
+                        <h3 data-i18n="bestiary_render_alpha">Render Alphas</h3>
+                        <span class="meta" data-i18n="bestiary_render_alpha_meta">PACK LEADERS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_render_alpha_desc"><strong>Size:</strong> 2.2-2.4m<br><strong>Activity:</strong> Nocturnal<br><strong>Habitat:</strong> Leads packs, nests<br><strong>Weakness:</strong> Concentrated fire, headshots less effective<br><strong>Behavior:</strong> Opens doors, recognizes traps. Spares injured prey to follow to shelter. Holds grudges.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/1Xws6V4S/Render-Brood-(Nest-Guardian).png" alt="Render Brood" data-i18n-alt="bestiary_render_brood_alt">
+                        <h3 data-i18n="bestiary_render_brood">Render Broods</h3>
+                        <span class="meta" data-i18n="bestiary_render_brood_meta">NEST GUARDIANS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_render_brood_desc"><strong>Size:</strong> 2.0-2.3m, bloated<br><strong>Activity:</strong> 24/7 near nest<br><strong>Habitat:</strong> Monster nests, subway dead-ends<br><strong>Weakness:</strong> Extremely vulnerable to fire (flammable slime)<br><strong>Behavior:</strong> Hyper-aggressive within 50m. Shriek attracts Drones within 500m. Fights to death.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/sx7sSG1R/Render-Whelp-(Juvenile-Swarm).png" alt="Render Whelps" data-i18n-alt="bestiary_render_whelp_alt">
+                        <h3 data-i18n="bestiary_render_whelp">Render Whelps</h3>
+                        <span class="meta" data-i18n="bestiary_render_whelp_meta">JUVENILE SWARMS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_render_whelp_desc"><strong>Size:</strong> 1.2-1.4m<br><strong>Activity:</strong> Nocturnal / overcast days<br><strong>Habitat:</strong> New Rift zones, collapsed schools<br><strong>Weakness:</strong> Fragile bones, fire, cowbar/bat<br><strong>Behavior:</strong> Swarm of 6-10. Erratic attacks. Noise attracts adults within 1km. Cowardly alone.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Whispers -->
+            <div class="card">
+                <div class="card-header" style="color:var(--accent-violet);">🟣 <span data-i18n="bestiary_whispers_title">WHISPERS — Psychological Threat</span></div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:20px;" data-i18n="bestiary_whispers_desc">Shadow entities. Harmless alone, dangerous in swarms. They do not kill directly — they break the mind.</p>
+                <div class="bestiary-grid">
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/1Xws6V41/Street-Dweller-(Outdoor-Whisper).png" alt="Street Dweller" data-i18n-alt="bestiary_whisper_street_alt">
+                        <h3 data-i18n="bestiary_whisper_street">Street Dwellers</h3>
+                        <span class="meta" style="color:var(--accent-violet);" data-i18n="bestiary_whisper_street_meta">OUTDOOR WHISPERS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_whisper_street_desc"><strong>Habitat:</strong> Open spaces, crossroads, parks<br><strong>Active:</strong> Always, denser at dusk/dawn<br><strong>Behavior:</strong> Whisper names of the dead. Swarms of 20+ induce panic in 90 seconds.<br><strong>Dispersal:</strong> Bright flashlights, campfires, genuine laughter.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/kGKq8RGZ/Basement-Dweller-(Indoor-Whisper).png" alt="Basement Dwellers" data-i18n-alt="bestiary_whisper_basement_alt">
+                        <h3 data-i18n="bestiary_whisper_basement">Basement Dwellers</h3>
+                        <span class="meta" style="color:var(--accent-violet);" data-i18n="bestiary_whisper_basement_meta">INDOOR WHISPERS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_whisper_basement_desc"><strong>Habitat:</strong> Basements, tunnels, bunkers<br><strong>Active:</strong> 24/7 in darkness<br><strong>Behavior:</strong> Whisper deepest fears. Swarms of 15+ cause temporary paralysis.<br><strong>Dispersal:</strong> Total darkness + rhythmic breathing, or bright light + loud music.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/rsxMWRsh/Corridor-Loop-(Institutional-Trap).png" alt="Corridor Loops" data-i18n-alt="bestiary_whisper_corridor_alt">
+                        <h3 data-i18n="bestiary_whisper_corridor">Corridor Loops</h3>
+                        <span class="meta" style="color:var(--accent-violet);" data-i18n="bestiary_whisper_corridor_meta">INSTITUTIONAL TRAP</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_whisper_corridor_desc"><strong>Habitat:</strong> Hospitals, schools, offices with 3+ floors<br><strong>Active:</strong> Buildings with intact corridors<br><strong>Behavior:</strong> Create spatial loops. After 5 loops — permanent loss of direction. After 10 — walk into Rift portal.<br><strong>Dispersal:</strong> Break a window or find 'anchor object'.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/j2PtNn2Z/Mirror-Echo-(Reflection-Predator).png" alt="Mirror Echoes" data-i18n-alt="bestiary_whisper_mirror_alt">
+                        <h3 data-i18n="bestiary_whisper_mirror">Mirror Echoes</h3>
+                        <span class="meta" style="color:var(--accent-violet);" data-i18n="bestiary_whisper_mirror_meta">REFLECTION PREDATORS</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_whisper_mirror_desc"><strong>Habitat:</strong> Buildings with intact windows, bathrooms, shops<br><strong>Active:</strong> Twilight, rain<br><strong>Behavior:</strong> Copy movements with 3-sec delay. If you stop, reflection keeps moving. Direct gaze 5+ sec = forced smile. 3+ min = self-harm.<br><strong>Dispersal:</strong> Break reflective surface or cover it.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brutes -->
+            <div class="card">
+                <div class="card-header" style="color:var(--accent-amber);">🟡 <span data-i18n="bestiary_brutes_title">BRUTES — Armored Destroyers</span></div>
+                <p style="font-size:14px; line-height:1.8; color:var(--text-dim); margin-bottom:20px;" data-i18n="bestiary_brutes_desc">Rare. Massive. Unstoppable. The only tactic is silence and hiding.</p>
+                <div class="bestiary-grid">
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/rmvqKNVB/Storm-Walker-(Weather-Dependent).png" alt="Storm Walker" data-i18n-alt="bestiary_brute_storm_alt">
+                        <h3 data-i18n="bestiary_brute_storm">Storm Walkers</h3>
+                        <span class="meta" style="color:var(--accent-amber);" data-i18n="bestiary_brute_storm_meta">WEATHER-DEPENDENT</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_brute_storm_desc"><strong>Size:</strong> 3-3.5m<br><strong>Activity:</strong> Exclusively during storms/heavy rain<br><strong>Habitat:</strong> Open streets, collapsed plazas<br><strong>Behavior:</strong> Follow thunder. Crush cars, walls, barricades. Do not eat — leave remains for Renders.<br><strong>Survival:</strong> Complete silence. Hide in basements. Do NOT fire weapons. Do NOT run.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/XJTnpkjh/Scar-Guardian-(Territorial-Patrol).png" alt="Scar Guardian" data-i18n-alt="bestiary_brute_scar_alt">
+                        <h3 data-i18n="bestiary_brute_scar">Scar Guardians</h3>
+                        <span class="meta" style="color:var(--accent-amber);" data-i18n="bestiary_brute_scar_meta">TERRITORIAL PATROL</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_brute_scar_desc"><strong>Size:</strong> 3.5-4m<br><strong>Activity:</strong> 24/7, dormant 6-8h<br><strong>Habitat:</strong> Within 500m of permanent Rift Scars<br><strong>Behavior:</strong> Guard the Scar. Attack anything within 200m. Eat only Rift-mutated creatures. Attack humans with visible Rift-cracks (like Veyra) immediately.<br><strong>Survival:</strong> Maintain 300m distance. Move silently around dormant Guardians.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Human Threats -->
+                        <div class="card">
+                <div class="card-header" data-i18n="bestiary_human_title">Human Threats</div>
+                <div class="bestiary-grid">
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/V63zdWfh/Protocol-ALPHA-Field-Agent.png" alt="Protocol Squad" data-i18n-alt="bestiary_human_protocol_alt">
+                        <h3 style="color:var(--accent-cyan);" data-i18n="bestiary_human_protocol">Protocol Hunter Squads</h3>
+                        <span class="meta" style="color:var(--accent-cyan);" data-i18n="bestiary_human_protocol_meta">FORMER MILITARY</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_human_protocol_desc"><strong>Size:</strong> 3-6 per squad<br><strong>Arms:</strong> Standard weapons, VERY RARE resonant ammo<br><strong>Behavior:</strong> Patrol fixed routes, avoid Rift zones, retreat at night. Take captives to unknown locations. Hunt deserters.<br><strong>Note:</strong> Not coordinated between squads.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/j5GRL4xQ/Marauder-Solo-Scout.png" alt="Marauder Scout" data-i18n-alt="bestiary_human_marauder_scout_alt">
+                        <h3 style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_scout">Marauder Scout</h3>
+                        <span class="meta" style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_scout_meta">LONE PREDATOR</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_human_marauder_scout_desc"><strong>Size:</strong> 1 individual<br><strong>Arms:</strong> Knife, pistol, improvised weapons<br><strong>Behavior:</strong> Reconnaissance for larger groups. Marks targets, leaves chalk signs. Will not engage unless desperate. Fast runner, knows escape routes.<br><strong>Note:</strong> Killing a scout may trigger a raid within 24 hours.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/sfPyDsR4/MARAUDER-ENFORCER.png" alt="Marauder Thug" data-i18n-alt="bestiary_human_marauder_thug_alt">
+                        <h3 style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_thug">Marauder Thug</h3>
+                        <span class="meta" style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_thug_meta">CANNON FODDER</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_human_marauder_thug_desc"><strong>Size:</strong> Part of 5-15 group<br><strong>Arms:</strong> Mixed — bats, pipes, stolen firearms<br><strong>Behavior:</strong> Follows orders blindly. Loud, reckless, cruel. First to charge, first to die. Driven by fear of their own leader.<br><strong>Note:</strong> Individually weak. Dangerous in numbers.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/j5GRL4xy/Marauder-Leader.png" alt="Marauder Leader" data-i18n-alt="bestiary_human_marauder_leader_alt">
+                        <h3 style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_leader">Marauder Leader</h3>
+                        <span class="meta" style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_leader_meta">ALPHA PREDATOR</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_human_marauder_leader_desc"><strong>Size:</strong> 1 per group<br><strong>Arms:</strong> Best weapons in group, often military-grade<br><strong>Behavior:</strong> Calculates risk, controls territory, negotiates with other groups. Kills dissenters publicly. Keeps the best loot and women.<br><strong>Note:</strong> Will retreat to preserve power. Never fights fair.</p>
+                    </div>
+                    <div class="beast-card">
+                        <img src="https://i.postimg.cc/1tLyfrmG/Marauder-Group-(5-15-members).png" alt="Marauder Gang" data-i18n-alt="bestiary_human_marauder_gang_alt">
+                        <h3 style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_gang">Marauder Gang</h3>
+                        <span class="meta" style="color:var(--accent-red);" data-i18n="bestiary_human_marauder_gang_meta">PRIMARY HUMAN THREAT</span>
+                        <p style="font-size:13px; color:var(--text-dim); line-height:1.7;" data-i18n="bestiary_human_marauder_gang_desc"><strong>Size:</strong> 5-15 per group<br><strong>Arms:</strong> Mixed, stripped from bodies<br><strong>Behavior:</strong> Kill for food, weapons, sport. Set ambushes in grocery stores and pharmacies. May capture female survivors. Control blocks or roam. Unpredictable, desperate, cruel.<br><strong>Note:</strong> Veyra kills without hesitation. {{user}} may hesitate.</p>
+                    </div>
+                </div>
+            </div></div>
+            </div>
+        </div>
+
+        <!-- ============ LOCATIONS SECTION ============ -->
+        <div id="locations" class="section">
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 class="glitch" data-i18n-glitch="locations_heading" data-text="LOCATIONS">LOCATIONS</h1>
+                <p class="lead" style="border:none; padding:0; max-width:700px; margin:0 auto;" data-i18n="locations_lead">The dead city is a maze of danger and opportunity. Every building has a story. Every shadow might hide death — or salvation.</p>
+            </div>
+
+            <div class="loc-grid">
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/mD0TtyLt/Improvised-Shelter-Basement.png" alt="Basement Shelter" data-i18n-alt="loc_shelter_alt">
+                    <div class="danger-level" style="border-color:var(--accent-green); color:var(--accent-green);" data-i18n="loc_shelter_danger">LOW</div>
+                    <h4 data-i18n="loc_shelter_name">Improvised Shelter — Basement</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_shelter_desc">Damp basement under a half-collapsed building. Two rooms: storage with moldy mattress, crates, camping stove; tiny bathroom with leaking pipe. Starting location. Render patrol passes above every 2-3 days.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/NMygszcR/Ruined-Streets.png" alt="Ruined Streets" data-i18n-alt="loc_streets_alt">
+                    <div class="danger-level" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="loc_streets_danger">MODERATE</div>
+                    <h4 data-i18n="loc_streets_name">Ruined Streets</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_streets_desc">Cracked asphalt, overturned cars, broken glass like snow. Skeletons of traffic lights. Whispers in alleys. Renders may be feeding in open areas. Hunter squads occasionally patrol. High energy cost.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/6379WmX4/Abandoned-House.png" alt="Abandoned House" data-i18n-alt="loc_house_alt">
+                    <div class="danger-level" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="loc_house_danger">VARIABLE</div>
+                    <h4 data-i18n="loc_house_name">Abandoned House</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_house_desc">Domestic normality twisted by absence. 40% empty, 30% Whispers, 20% Render nesting, 10% other survivors. Scavenging: food cans, medicine, clothing, batteries. Takes 1-2 hours to search.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/85F1p0Sr/Abandoned-Warehouse.png" alt="Abandoned Warehouse" data-i18n-alt="loc_warehouse_alt">
+                    <div class="danger-level" style="border-color:var(--accent-red); color:var(--accent-red);" data-i18n="loc_warehouse_danger">HIGH</div>
+                    <h4 data-i18n="loc_warehouse_name">Abandoned Warehouse</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_warehouse_desc">Large industrial storage. High ceilings, rows of shelving. Echoing footsteps. Renders favor enclosed spaces with few exits. Excellent loot: canned goods in bulk, tools, tarps, fuel. High ambush chance.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/gJwYzTWw/Derelict-Military-Bunker.png" alt="Derelict Military Bunker" data-i18n-alt="loc_bunker_alt">
+                    <div class="danger-level" style="border-color:var(--accent-red); color:var(--accent-red);" data-i18n="loc_bunker_danger">HIGH</div>
+                    <h4 data-i18n="loc_bunker_name">Derelict Military Bunker</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_bunker_desc">Partially collapsed emergency shelter. Sterile white walls stained with rust and old blood. Automated turrets may still function. Class II Renders nest in barracks. Unique rewards: rare ammo, medical kits, tactical gear. Veyra knows some access codes.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/Jny1r2L0/Monster-Nest.png" alt="Monster Nest" data-i18n-alt="loc_nest_alt">
+                    <div class="danger-level" style="border-color:#7f1d1d; color:#ef4444;" data-i18n="loc_nest_danger">EXTREME</div>
+                    <h4 data-i18n="loc_nest_name">Monster Nest</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_nest_desc">Building or block overtaken by Renders. Walls coated with black Rift-slime, bones scattered, stench of rotting meat. Oppressive silence. Entering without heavy firepower is suicide. Veyra will physically block {{user}} from entering unless desperate.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/QtBX8y3t/Empty-Park.png" alt="Empty Park" data-i18n-alt="loc_park_alt">
+                    <div class="danger-level" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="loc_park_danger">LOW-MOD</div>
+                    <h4 data-i18n="loc_park_name">Empty Park</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_park_desc">Dead trees, dried fountain, overturned benches. Eerie openness after claustrophobia of ruins. Good for water collection if it rains. Whispers gather under playground equipment. Renders avoid open spaces during day.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/G2BcL5Ch/Pharmacy.png" alt="Pharmacy" data-i18n-alt="loc_pharmacy_alt">
+                    <div class="danger-level" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="loc_pharmacy_danger">MODERATE</div>
+                    <h4 data-i18n="loc_pharmacy_name">Pharmacy</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_pharmacy_desc">Ground-floor pharmacy with shattered windows. Back room may contain locked storage. Often targeted by survivors; may be guarded by marauders. Renders sometimes lurk in back corridors. Loot: antibiotics, painkillers, bandages, disinfectant, rare epinephrine or morphine.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/0Q68kBs5/Grocery-Store.png" alt="Grocery Store" data-i18n-alt="loc_grocery_alt">
+                    <div class="danger-level" style="border-color:var(--accent-red); color:var(--accent-red);" data-i18n="loc_grocery_danger">MOD-HIGH</div>
+                    <h4 data-i18n="loc_grocery_name">Grocery Store</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_grocery_desc">Mid-size supermarket. Most perishables rotted. Canned goods, dried pasta, bottled water may remain. High-traffic area for both monsters and survivors. 50% chance of encountering others. Energy cost of carrying heavy food loads: high.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/sXBVjNrj/Safe-Zone-Survivor-Camp.png" alt="Safe Zone" data-i18n-alt="loc_safezone_alt">
+                    <div class="danger-level" style="border-color:var(--accent-green); color:var(--accent-green);" data-i18n="loc_safezone_danger">LOW</div>
+                    
+                    <h4 data-i18n="loc_safezone_name">Safe Zone — Survivor Camp</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_safezone_desc">School gym, parking garage with barricades, or rooftop shantytown. Cooking fires, quiet conversations, children playing — a ghost of normal life. Rules: no weapons drawn, trade expected, information costs food. Veyra is deeply uncomfortable here.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/k4VnJpmn/Rooftop.png" alt="Rooftop" data-i18n-alt="loc_rooftop_alt">
+                    <div class="danger-level" style="border-color:var(--accent-amber); color:var(--accent-amber);" data-i18n="loc_rooftop_danger">LOW</div>
+                    <h4 data-i18n="loc_rooftop_name">Rooftop</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_rooftop_desc">Mid-rise building roof. Accessed via fire escape or stairwell. Wind, wide view of dead city. Good for spotting loot, patrols, monster movement. No cover. Veyra uses rooftops to plan routes. At night: beautiful and terrible.</p>
+                </div>
+                <div class="loc-card">
+                    <img src="https://i.postimg.cc/xCk0f422/Underground-Passage-Metro.png" alt="Underground Metro" data-i18n-alt="loc_metro_alt">
+                    <div class="danger-level" style="border-color:var(--accent-red); color:var(--accent-red);" data-i18n="loc_metro_danger">HIGH</div>
+                    <h4 data-i18n="loc_metro_name">Underground Passage / Metro</h4>
+                    <p style="font-size:13px; color:var(--text-dim); line-height:1.6;" data-i18n="loc_metro_desc">Dark tunnels, stagnant water on tracks, abandoned trains like metal coffins. Absolute darkness without flashlight. Renders use tunnels as highways. Bypasses street-level dangers. Time distortion: 1 hour may feel like 20 minutes or 2 hours.</p>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <div data-i18n="footer_title">PROTOCOL ARCHIVE v2.6.2026 // DEAD CITY DOSSIER DATABASE</div>
+        <div style="color:var(--accent-violet); letter-spacing:2px;" data-i18n="footer_auth">[ AUTHORIZED EYES ONLY ]</div>
+        <div style="margin-top:8px; font-size:10px; color:var(--text-dim);" data-i18n="footer_warning">All data classified under Protocol Directive 7-Alpha. Unauthorized distribution punishable by Rift exposure.</div>
+    </footer>
+    <!-- ===== AUDIO PLAYER ===== -->
+<div id="audio-player" class="audio-player-wrapper">
+    <button class="audio-toggle" id="audio-toggle" title="Свернуть / развернуть">
+        <span class="audio-toggle-icon">◀</span>
+    </button>
+
+    <div class="audio-player-panel">
+        <div class="audio-header">
+            <span class="audio-label">// AUDIO_PROTOCOL</span>
+            <div class="audio-visualizer" id="audio-visualizer">
+                <span></span><span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span><span></span>
+            </div>
+        </div>
+
+        <div class="audio-track-name" id="audio-track-name">CONCRETE ASH RITUAL</div>
+
+        <div class="audio-progress-wrap">
+            <div class="audio-progress-bg" id="audio-progress-bg">
+                <div class="audio-progress-fill" id="audio-progress-fill"></div>
+            </div>
+            <div class="audio-time" id="audio-time">00:00 / 00:00</div>
+        </div>
+
+        <div class="audio-controls">
+            <button class="audio-btn" id="audio-prev" title="Предыдущий">◄◄</button>
+            <button class="audio-btn audio-play" id="audio-play" title="Play / Pause">▶</button>
+            <button class="audio-btn" id="audio-next" title="Следующий">►►</button>
+        </div>
+
+        <div class="audio-volume-row">
+            <span class="audio-vol-icon">♪</span>
+            <input type="range" class="audio-volume" id="audio-volume" min="0" max="1" step="0.01" value="0.7">
+        </div>
+    </div>
+</div>
+
+<script>
+        // ----- Boot screen -----
+    const bootLines = [
+        "> INITIALIZING PROTOCOL ARCHIVE...",
+        "> LOADING DEAD CITY DOSSIER DATABASE...",
+        "> AUTHENTICATING USER CREDENTIALS...",
+        "> ACCESS GRANTED: LEVEL 4 CLEARANCE",
+        "> DECRYPTING FIELD AGENT RECORDS...",
+        "> LOADING SURVIVAL PARAMETERS...",
+        "> LOADING BESTIARY INDEX...",
+        "> LOADING LOCATION DATA...",
+        "> RENDERING INTERFACE...",
+        "> SYSTEM READY."
+    ];
+    const bootText = document.getElementById('boot-text');
+    bootLines.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 'boot-line';
+        div.style.animationDelay = (i * 0.2) + 's';
+        div.textContent = line;
+        bootText.appendChild(div);
+    });
+    setTimeout(() => {
+        document.getElementById('boot-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        initParticles();
+    }, 3000);
+
+    // ----- Navigation -----
+    function showSection(id, btn) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        if (btn) btn.classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ----- Tabs -----
+    function showTab(id, btn) {
+        const parent = btn.closest('.tabs').parentElement;
+        parent.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    // ----- Mobile menu -----
+    function toggleMenu() {
+        document.getElementById('nav-links').classList.toggle('open');
+    }
+
+    // ----- Particles -----
+    function initParticles() {
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const particles = [];
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                vx: (Math.random() - 0.5) * 0.3,
+                vy: (Math.random() - 0.5) * 0.3,
+                size: Math.random() * 2,
+                alpha: Math.random() * 0.5
+            });
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(168, 85, 247, ' + p.alpha + ')';
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+        animate();
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+    }
+
+    // ----- Language Dropdown -----
+    function toggleLangMenu(e) {
+        e.stopPropagation();
+        document.getElementById('lang-menu').classList.toggle('open');
+    }
+
+    document.addEventListener('click', function(e) {
+        const dropdown = document.getElementById('lang-dropdown');
+        if (dropdown && !dropdown.contains(e.target)) {
+            document.getElementById('lang-menu').classList.remove('open');
+        }
+    });
+
+    // ----- Translation System -----
+    let currentLang = localStorage.getItem('lang') || 'en';
+    let translations = {};
+
+    const langDisplayNames = {
+        'en': 'EN',
+        'ru': 'RU',
+        'pt': 'PT',
+        'zh': '中文',
+        'es': 'ES',
+        'dan': 'DAN',
+        'de': 'DE',
+        'fi': 'FI',
+        '#': '#'
+    };
+
+    async function loadLanguage(lang, btn) {
+        try {
+            const response = await fetch(`${lang}.json`);
+            if (!response.ok) throw new Error('Translation file not found');
+            translations = await response.json();
+            applyTranslations();
+            document.documentElement.lang = lang;
+            localStorage.setItem('lang', lang);
+            currentLang = lang;
+
+            // Update dropdown UI
+            const codeEl = document.getElementById('current-lang-code');
+            if (codeEl) {
+                codeEl.textContent = langDisplayNames[lang] || lang.toUpperCase();
+            }
+
+            // Update active state in menu
+            document.querySelectorAll('.lang-item').forEach(b => {
+                b.classList.toggle('active', b.dataset.lang === lang);
+            });
+
+            // Close menu after selection
+            document.getElementById('lang-menu').classList.remove('open');
+
+        } catch (e) {
+            console.error('Failed to load translations:', e);
+            if (lang !== 'en') loadLanguage('en');
+        }
+    }
+
+    function applyTranslations() {
+        // Text nodes (innerHTML)
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.dataset.i18n;
+            if (translations[key] !== undefined) {
+                el.innerHTML = translations[key];
+            }
+        });
+        // Glitch headers (data-text and textContent)
+        document.querySelectorAll('[data-i18n-glitch]').forEach(el => {
+            const key = el.dataset.i18nGlitch;
+            if (translations[key] !== undefined) {
+                el.setAttribute('data-text', translations[key]);
+                el.textContent = translations[key];
+            }
+        });
+        // Alt texts
+        document.querySelectorAll('[data-i18n-alt]').forEach(el => {
+            const key = el.dataset.i18nAlt;
+            if (translations[key] !== undefined) {
+                el.alt = translations[key];
+            }
+        });
+        // Placeholder
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.dataset.i18nPlaceholder;
+            if (translations[key] !== undefined) {
+                el.placeholder = translations[key];
+            }
+        });
+        // Title
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.dataset.i18nTitle;
+            if (translations[key] !== undefined) {
+                el.title = translations[key];
+            }
+        });
+    }
+
+    // Init language on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedLang = localStorage.getItem('lang') || 'en';
+        loadLanguage(savedLang);
+    });
+        // ===== AUDIO PLAYER LOGIC =====
+    const tracks = [
+        { title: "CONCRETE ASH RITUAL", src: "Concrete Ash Ritual.mp3" },
+        { title: "BROKEN SIX", src: "Broken Six.mp3" }
+    ];
+
+    let currentTrack = 0;
+    const audio = new Audio();
+    audio.volume = 0.7;
+
+    const wrapperEl = document.getElementById('audio-player');
+    const toggleBtn = document.getElementById('audio-toggle');
+    const playBtn = document.getElementById('audio-play');
+    const prevBtn = document.getElementById('audio-prev');
+    const nextBtn = document.getElementById('audio-next');
+    const progressBg = document.getElementById('audio-progress-bg');
+    const progressFill = document.getElementById('audio-progress-fill');
+    const timeEl = document.getElementById('audio-time');
+    const trackNameEl = document.getElementById('audio-track-name');
+    const volumeSlider = document.getElementById('audio-volume');
+
+    let isCollapsed = false;
+
+    function formatTime(s) {
+        if (isNaN(s)) return "00:00";
+        const m = Math.floor(s / 60);
+        const sec = Math.floor(s % 60);
+        return String(m).padStart(2,'0') + ':' + String(sec).padStart(2,'0');
+    }
+
+    function loadTrack(index, autoPlay = false) {
+        currentTrack = index;
+        if (currentTrack < 0) currentTrack = tracks.length - 1;
+        if (currentTrack >= tracks.length) currentTrack = 0;
+
+        audio.src = tracks[currentTrack].src;
+        trackNameEl.textContent = tracks[currentTrack].title;
+        progressFill.style.width = '0%';
+        timeEl.textContent = '00:00 / 00:00';
+
+        if (autoPlay) {
+            audio.play().then(() => {
+                playBtn.textContent = '⏸';
+                wrapperEl.classList.add('playing');
+            }).catch(() => {
+                // Браузер заблокировал автовоспроизведение
+                playBtn.textContent = '▶';
+                wrapperEl.classList.remove('playing');
+            });
+        }
+    }
+
+    function togglePlay() {
+        if (audio.paused) {
+            audio.play().then(() => {
+                playBtn.textContent = '⏸';
+                wrapperEl.classList.add('playing');
+            }).catch(() => {});
+        } else {
+            audio.pause();
+            playBtn.textContent = '▶';
+            wrapperEl.classList.remove('playing');
+        }
+    }
+
+    toggleBtn.addEventListener('click', () => {
+        isCollapsed = !isCollapsed;
+        wrapperEl.classList.toggle('collapsed', isCollapsed);
+    });
+
+    playBtn.addEventListener('click', togglePlay);
+    prevBtn.addEventListener('click', () => loadTrack(currentTrack - 1, true));
+    nextBtn.addEventListener('click', () => loadTrack(currentTrack + 1, true));
+
+    audio.addEventListener('timeupdate', () => {
+        if (audio.duration) {
+            const pct = (audio.currentTime / audio.duration) * 100;
+            progressFill.style.width = pct + '%';
+            timeEl.textContent = formatTime(audio.currentTime) + ' / ' + formatTime(audio.duration);
+        }
+    });
+
+    audio.addEventListener('ended', () => {
+        loadTrack(currentTrack + 1, true);
+    });
+
+    progressBg.addEventListener('click', (e) => {
+        if (!audio.duration) return;
+        const rect = progressBg.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const pct = clickX / rect.width;
+        audio.currentTime = pct * audio.duration;
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+        audio.volume = e.target.value;
+    });
+
+    // Init: первая песня + автостарт
+    trackNameEl.textContent = tracks[0].title;
+    loadTrack(0, true);
+</script>
+</body>
+</html>
