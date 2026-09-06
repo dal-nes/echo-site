@@ -1564,7 +1564,6 @@
                         <img src="https://i.postimg.cc/L66scnZv/Veyra14.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
                     </div>
                 </div>
-            </div>
 
             <!-- NSFW Tab -->
             <div id="v-nsfw" class="tab-content">
@@ -1599,6 +1598,7 @@
                                 <div class="img-grid" style="margin-top:16px;">
                     <img src="https://i.postimg.cc/rFFpBKtQ/Veyra15.jpg" alt="Veyra" style="width:100%;border-radius:4px;border:1px solid var(--border);">
                     </div>
+                </div>
         </div>
 
         <!-- ============ MIKA SECTION ============ -->
@@ -2196,6 +2196,15 @@
         document.getElementById(id).classList.add('active');
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         if (btn) btn.classList.add('active');
+        // Reset all tabs to first tab when switching sections
+        document.querySelectorAll('.section').forEach(sec => {
+            const tabs = sec.querySelectorAll('.tab-btn');
+            const contents = sec.querySelectorAll('.tab-content');
+            if (tabs.length && contents.length) {
+                tabs.forEach((t, i) => t.classList.toggle('active', i === 0));
+                contents.forEach((c, i) => c.classList.toggle('active', i === 0));
+            }
+        });
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
